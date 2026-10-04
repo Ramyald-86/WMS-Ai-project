@@ -1,0 +1,11 @@
+/* r145f27: explicit pallet/section selection + server-backed manual receiving */
+.r27-pallet-picker{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(180px,1fr) minmax(100px,.5fr) auto;gap:10px;align-items:end;margin:12px 0;padding:12px;border:1px solid #d9e0ec;border-radius:14px;background:#f8faff}
+.r27-pallet-picker label{display:grid;gap:5px;font-weight:700}.r27-pallet-picker input{min-width:0}
+.r68-pallet .kicker{font-size:12px;letter-spacing:.08em}.r68-pallet h3{font-size:24px;margin:3px 0}.r68-pallet small{display:block;margin:4px 0 10px;color:#667085}
+.fc27-server-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:#e9f8ef;color:#137a3b;font-weight:800;font-size:12px}
+.fc27-server-badge::before{content:'●';font-size:10px}.fc27-server-warning{padding:10px 12px;border-radius:12px;background:#fff6e8;color:#9a5700;margin:8px 0}
+.storage-address-card .fc27-public-code,.storage-detail .fc27-public-code{font-weight:800}.storage-pallet-section-head h3{font-size:28px}
+@media(max-width:900px){.r27-pallet-picker{grid-template-columns:1fr 1fr}.r27-pallet-picker button{grid-column:1/-1}}
+
+/* FIX6: current receiving box/place always first; prior boxes collapse below. */
+.fc27-active-receive-group{border:2px solid #5a4ded!important;background:#f7f6ff!important;padding:14px!important;border-radius:16px!important;margin:10px 0 14px}.fc27-active-receive-group h3{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:5px 0 10px}.fc27-active-kicker{font-size:11px;font-weight:900;letter-spacing:.08em;color:#5545ec}.fc27-active-empty{padding:12px;border-radius:10px;background:#fff;color:#667085}.fc27-other-receipt-groups{margin:12px 0;border:1px solid #d7deea;border-radius:14px;background:#fff}.fc27-other-receipt-groups>summary{cursor:pointer;padding:14px;font-weight:800;display:flex;justify-content:space-between}.fc27-other-receipt-list{padding:0 10px 10px}.fc27-receive-group{margin:8px 0;border:1px solid #e0e5ed;border-radius:12px;background:#fff}.fc27-receive-group>summary{cursor:pointer;padding:12px;display:flex;justify-content:space-between;gap:12px;font-weight:800}.fc27-receive-group-body{padding:0 10px 10px}

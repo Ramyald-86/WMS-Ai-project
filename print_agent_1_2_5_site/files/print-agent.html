@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FulfillCore Print Agent 1.2.5 — установка</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:920px;margin:32px auto;padding:0 18px;line-height:1.55;color:#20212a}h1,h2{color:#26243d}.card{border:1px solid #ddd9f4;border-radius:16px;padding:20px;margin:18px 0;background:#faf9ff}.btn{display:inline-block;padding:12px 18px;margin:6px 8px 6px 0;border-radius:10px;text-decoration:none;background:#6d58d9;color:#fff;font-weight:700}.secondary{background:#ece9ff;color:#3b3178}code{background:#f2f2f5;padding:2px 5px;border-radius:5px}.ok{background:#effaf3;border-left:4px solid #28a15f;padding:12px}.warn{background:#fff7e9;border-left:4px solid #d58b18;padding:12px}li{margin:8px 0}
+</style>
+</head>
+<body>
+<h1>FulfillCore Print Agent 1.2.5</h1>
+<p><b>Актуальный установщик для Windows.</b> После установки Print Agent сразу работает в фоне и автоматически запускается после входа в Windows. Ручной запуск START_AGENT не нужен.</p>
+<p><a class="btn" href="/downloads/print-agent/archive">Скачать Print Agent 1.2.5</a><a class="btn secondary" href="/downloads/print-agent/instruction">Скачать инструкцию TXT</a></p>
+<div class="card"><h2>Перед установкой</h2><ol><li>Подключите принтер и установите драйвер.</li><li>Распечатайте тестовую страницу средствами Windows.</li><li>В FulfillCore откройте <b>Настройки печати</b>, выберите код рабочего места (например <code>PACK-02</code>) и нажмите кнопку показа токена.</li></ol></div>
+<div class="card"><h2>Установка</h2><ol><li>Скачайте ZIP и <b>полностью распакуйте</b> его в обычную папку. Не запускайте файлы прямо из ZIP.</li><li>Запустите <b>START_INSTALL.cmd</b>.</li><li>В поле FulfillCore URL обычно просто нажмите Enter. По умолчанию используется <code>https://201-24-52-218.nip.io</code>.</li><li>Введите уникальный код рабочего места, например <code>PACK-02</code>.</li><li>Выберите номер физического принтера из списка Windows.</li><li>Для Xprinter обычно: <b>1 = TSPL</b>, DPI — <b>203</b>.</li><li>Скопируйте токен именно этого рабочего места из FulfillCore и вставьте в установщик.</li><li>Дождитесь зелёного сообщения <b>INSTALL OK</b>.</li></ol><p class="ok">После INSTALL OK окно можно закрыть. Агент уже запущен скрыто в фоне.</p></div>
+<div class="card"><h2>Что исправлено в 1.2.5</h2><ul><li>Единый config: <code>C:\printagent\config.json</code>.</li><li>Фоновый запуск сразу после установки.</li><li>Автозапуск после входа в Windows через Startup + HKCU Run.</li><li>Watchdog восстанавливает агент после неожиданного завершения, если Windows разрешает создание задачи.</li><li>Нет ошибки, при которой установщик мог завершать сам себя.</li><li>Сохранена надёжная очередь/журнал печати 1.2.4 и защита от повторной физической печати одного job_id.</li></ul></div>
+<div class="card"><h2>Проверка</h2><p>Запустите <b>CHECK_AGENT.cmd</b>. Нормально, если отображается:</p><ul><li>SERVER: OK</li><li>TOKEN/STATION: OK</li><li>PRINTER: FOUND</li><li>BACKGROUND AGENT: RUNNING</li><li>STARTUP SHORTCUT: OK</li><li>HKCU RUN AUTOSTART: OK</li></ul><p>После перезагрузки компьютера ничего вручную не запускайте. Войдите в Windows, подождите 15–30 секунд и отправьте одну тестовую этикетку.</p></div>
+<div class="warn"><b>Важно:</b> один код станции (например PACK-02) не должен одновременно использоваться на двух компьютерах. Для каждого рабочего места используйте свой код и его токен.</div>
+</body></html>

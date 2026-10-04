@@ -1,0 +1,40 @@
+
+# Editor / OS noise.
+# Historical source copies, database backups and patch workspaces.
+# Host secrets and local state must never enter the image.
+# Loose development copies in the project root.
+**/*.pyc
+**/*.pyd
+**/*.pyo
+**/__pycache__
+*.diff
+*.dump
+*.swp
+*.tmp
+.DS_Store
+.env
+.env.*
+.git
+.gitignore
+.mypy_cache
+.pytest_cache
+.ruff_cache
+/:USERPROFILE*
+/app.js
+/marketplaces.py
+/marketplaces_current.py
+CHZ_FAST_UPDATE
+FulfillCore_0.*
+FulfillCore_CHZ_*
+INSTALL_*.txt
+README_*.md
+README_*.txt
+RELEASE_NOTES_*.txt
+TECH_SPEC_*.md
+Thumbs.db
+admin-password.env
+app.broken_*
+audit_backups
+backup_*
+backups
+src

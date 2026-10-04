@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FulfillCore — склад</title>
+  <link rel="stylesheet" href="/static/app.css" />
+  <link rel="stylesheet" href="/static/finance-ui.css?v=r145f20" />
+<style>
+.hidden{display:none!important}
+/* 0.7.7.5 — compact WB product catalogue */
+#page-products .products-layout{display:grid;grid-template-columns:minmax(220px,270px) minmax(0,1fr);gap:16px;align-items:start}
+#page-products .product-import-panel{padding:16px;position:sticky;top:12px;max-height:calc(100vh - 130px);overflow:auto}
+#page-products .product-import-panel .panel-head{display:block}
+#page-products .product-import-panel .panel-head select{width:100%;margin-top:10px}
+#page-products .product-import-panel textarea{min-height:104px;resize:vertical}
+#page-products .product-import-panel .button-row{display:grid;grid-template-columns:1fr;gap:8px}
+#page-products .product-catalog-panel{min-width:0;padding:16px}
+#page-products .product-catalog-panel .panel-head{gap:12px;align-items:flex-end;flex-wrap:wrap}
+#page-products .product-catalog-panel .inline-controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+#page-products .product-catalog-panel .small-search{min-width:260px;flex:1 1 300px}
+#page-products .product-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))!important;gap:12px!important;align-items:stretch;min-width:0;overflow:visible!important}
+#page-products .product-catalog-card{display:grid!important;grid-template-columns:96px minmax(0,1fr)!important;gap:12px!important;min-width:0!important;width:auto!important;max-width:none!important;overflow:hidden!important;padding:12px!important;align-items:start}
+#page-products .product-image-button{width:96px!important;height:128px!important;min-width:96px!important;overflow:hidden;border-radius:10px}
+#page-products .product-image-button img{width:100%!important;height:100%!important;object-fit:cover!important;display:block}
+#page-products .product-placeholder{width:100%;height:100%;display:grid;place-items:center;text-align:center}
+#page-products .product-catalog-info{min-width:0!important;overflow:hidden}
+#page-products .product-card-topline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+#page-products .product-card-topline .muted{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#page-products .product-title-link{display:block;width:100%;text-align:left;white-space:normal!important;overflow-wrap:anywhere;line-height:1.25;margin:6px 0}
+#page-products .product-article b,#page-products .product-meta-row b{overflow-wrap:anywhere;word-break:break-word}
+#page-products .product-meta-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px 10px!important;min-width:0}
+#page-products .product-meta-row span{min-width:0}
+#page-products .product-stock-line{display:flex!important;gap:8px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-top:8px}
+#page-products .product-stock-line .button-row{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:1100px){#page-products .products-layout{grid-template-columns:220px minmax(0,1fr)}#page-products .product-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important}}
+@media (max-width:820px){#page-products .products-layout{grid-template-columns:1fr}#page-products .product-import-panel{position:static;max-height:none}#page-products .product-grid{grid-template-columns:1fr!important}}
+
+/* 0.7.7.6 — pallet receiving UX */
+#page-palletreceive .pallet-workspace{display:grid;grid-template-columns:minmax(320px,380px) minmax(0,1fr);gap:16px;align-items:start}
+#page-palletreceive .pallet-scan-panel{position:sticky;top:12px;align-self:start}
+#page-palletreceive .pallet-structure-panel{min-width:0}
+#page-palletreceive .pallet-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 12px}
+#page-palletreceive .pallet-summary>div{background:var(--surface-2,#f7f8fb);border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:10px 12px;min-width:0}
+#page-palletreceive .pallet-summary small{display:block;color:var(--muted,#6b7280);font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+#page-palletreceive .pallet-summary b{font-size:18px;line-height:1.1}
+#page-palletreceive #palletReceiptStructure{display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 275px);overflow:auto;padding-right:4px}
+#page-palletreceive .pallet-card{border:1px solid var(--border,#e5e7eb);border-radius:14px;background:#fff;overflow:hidden}
+#page-palletreceive .pallet-card.current{border-color:#6d5dfc;box-shadow:0 0 0 2px rgba(109,93,252,.08)}
+#page-palletreceive .pallet-card-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;background:var(--surface-2,#f8f9fb);cursor:pointer;user-select:none}
+#page-palletreceive .pallet-card.current .pallet-card-head{background:#f4f2ff}
+#page-palletreceive .pallet-number{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#fff;border:1px solid var(--border,#e5e7eb);font-weight:700}
+#page-palletreceive .pallet-title{min-width:0}
+#page-palletreceive .pallet-title b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#page-palletreceive .pallet-title small{display:block;color:var(--muted,#6b7280);margin-top:2px}
+#page-palletreceive .pallet-head-actions{display:flex;gap:6px;align-items:center}
+#page-palletreceive .pallet-progress{font-weight:700;font-size:12px;padding:5px 8px;border-radius:999px;background:#eef0f4;white-space:nowrap}
+#page-palletreceive .pallet-progress.full{background:#e9f8ee;color:#157a39}
+#page-palletreceive .pallet-box-list{display:flex;flex-direction:column}
+#page-palletreceive .pallet-box-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--border,#edf0f3);min-height:42px}
+#page-palletreceive .pallet-box-row:first-child{border-top:0}
+#page-palletreceive .pallet-box-index{font-size:12px;color:var(--muted,#6b7280);text-align:center}
+#page-palletreceive .pallet-box-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;overflow-wrap:anywhere;min-width:0}
+#page-palletreceive .pallet-box-qty{font-size:12px;color:var(--muted,#6b7280);white-space:nowrap}
+#page-palletreceive .pallet-empty{padding:12px;color:var(--muted,#6b7280);font-size:13px}
+#page-palletreceive .pallet-card.collapsed .pallet-box-list{display:none}
+#page-palletreceive .pallet-card.collapsed .pallet-toggle{transform:rotate(-90deg)}
+#page-palletreceive .pallet-toggle{display:inline-block;transition:transform .15s ease}
+#page-palletreceive .pallet-excel-panel{margin-top:16px}
+@media(max-width:980px){#page-palletreceive .pallet-workspace{grid-template-columns:1fr}#page-palletreceive .pallet-scan-panel{position:static}#page-palletreceive #palletReceiptStructure{max-height:none}}
+
+
+/* 0.7.7.7 — receiving flow + inventory polish */
+#page-inventory .inventory-table th:nth-child(1){width:70px}
+#page-inventory .inventory-table th:nth-child(2){min-width:230px}
+#page-inventory .inventory-table th:nth-child(3){min-width:110px}
+#page-inventory .inventory-table th:nth-child(4){width:90px}
+#page-inventory .inventory-table th:nth-child(5){min-width:145px}
+#page-inventory .inventory-table th:nth-child(6){min-width:240px}
+#page-inventory .inventory-table th:nth-child(7){width:110px}
+#page-inventory .inventory-table tbody tr{cursor:pointer}
+#page-inventory .inventory-table tbody tr:hover{background:#fafaff}
+#page-inventory .inventory-title-link{font-weight:700;color:inherit;text-decoration:none;background:none;border:0;padding:0;cursor:pointer}
+#page-inventory .inventory-row-open{white-space:nowrap}
+#page-palletreceive .pallet-home{display:grid;grid-template-columns:minmax(320px,430px) minmax(0,1fr);gap:16px;align-items:start}
+#page-palletreceive .receiving-methods{display:grid;gap:8px;margin:6px 0 16px}
+#page-palletreceive .receiving-method{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid var(--border,#e5e7eb);background:#fff;border-radius:12px;padding:12px;cursor:pointer}
+#page-palletreceive .receiving-method.active{border-color:#6d5dfc;background:#f6f4ff;box-shadow:0 0 0 2px rgba(109,93,252,.06)}
+#page-palletreceive .receiving-method span{font-size:12px;color:var(--muted,#6b7280)}
+#page-palletreceive .receipt-list{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 260px);overflow:auto;padding-right:4px}
+#page-palletreceive .receipt-list-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:11px 12px;background:#fff}
+#page-palletreceive .receipt-list-row:hover{border-color:#bbb5ff;background:#fbfaff}
+#page-palletreceive .receipt-list-main{min-width:0}
+#page-palletreceive .receipt-list-main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#page-palletreceive .receipt-list-main small{display:block;color:var(--muted,#6b7280);margin-top:3px}
+#page-palletreceive .receipt-list-stats{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+#page-palletreceive .receipt-list-stats span{font-size:11px;padding:3px 7px;border-radius:999px;background:#f1f3f6}
+#page-palletreceive .pallet-detail-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:16px}
+#page-palletreceive .pallet-detail-title h2{margin:2px 0}
+#page-palletreceive .danger-outline{border-color:#efb6b6!important;color:#a52a2a!important}
+#page-palletreceive .pallet-workspace{grid-template-columns:minmax(300px,350px) minmax(0,1fr)!important}
+#page-palletreceive .pallet-scan-panel{z-index:1}
+#page-palletreceive .pallet-structure-panel{overflow:hidden;min-width:0}
+#page-palletreceive #palletReceiptStructure{height:calc(100vh - 360px);min-height:430px;max-height:none!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:8px}
+#page-palletreceive .pallet-box-row{grid-template-columns:34px minmax(0,1fr) 90px 76px}
+#page-palletreceive .pallet-excel-panel{position:relative;z-index:0}
+@media(max-width:980px){#page-palletreceive .pallet-home{grid-template-columns:1fr}#page-palletreceive .pallet-detail-toolbar{grid-template-columns:1fr}#page-palletreceive #palletReceiptStructure{height:55vh;min-height:360px;max-height:55vh!important}}
+
+
+/* 0.7.7.8 — fixed navigation + receiving workspace + inventory modal */
+@media (min-width:821px){
+  .app-shell{display:block!important;min-height:100vh}
+  .sidebar{position:fixed!important;left:0;top:0;bottom:0;width:240px!important;height:100vh!important;overflow-y:auto!important;overflow-x:hidden;z-index:100}
+  .main{margin-left:240px!important;width:calc(100% - 240px)!important;min-width:0!important}
+}
+.section-backbar{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 12px;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:12px}
+.section-backbar>div{display:flex;flex-direction:column;gap:2px}
+.section-backbar b{font-size:14px}
+#page-palletreceive .pallet-workspace{display:grid!important;grid-template-columns:minmax(285px,330px) minmax(0,1fr)!important;gap:14px!important;align-items:stretch!important;height:min(680px,calc(100vh - 260px));min-height:390px;overflow:hidden}
+#page-palletreceive .pallet-scan-panel{position:relative!important;top:auto!important;align-self:stretch!important;z-index:0!important;overflow-y:auto!important;min-width:0}
+#page-palletreceive .pallet-structure-panel{display:flex!important;flex-direction:column!important;height:100%!important;min-height:0!important;min-width:0!important;overflow:hidden!important}
+#page-palletreceive .pallet-structure-panel>.panel-head,#page-palletreceive .pallet-summary{flex:0 0 auto}
+#page-palletreceive #palletReceiptStructure{flex:1 1 auto!important;height:auto!important;min-height:0!important;max-height:none!important;overflow-y:scroll!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-gutter:stable both-edges;padding-right:8px!important}
+#page-palletreceive .pallet-card{flex:0 0 auto}
+#page-palletreceive .pallet-excel-panel{clear:both;margin-top:14px!important}
+.inventory-modal-card{width:min(1050px,calc(100vw - 48px))!important;max-width:1050px!important;max-height:calc(100vh - 48px)!important;overflow-y:auto!important}
+.inventory-detail-head{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:start}
+.inventory-detail-head>img{width:110px;height:145px;object-fit:cover;border-radius:12px}
+.inventory-detail-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(270px,.8fr);gap:16px;margin-top:16px;align-items:start}
+@media(max-width:980px){
+  #page-palletreceive .pallet-workspace{grid-template-columns:1fr!important;height:auto!important;min-height:0!important;overflow:visible!important}
+  #page-palletreceive .pallet-scan-panel{overflow:visible!important}
+  #page-palletreceive .pallet-structure-panel{height:58vh!important;min-height:360px!important}
+  #page-palletreceive #palletReceiptStructure{height:auto!important;max-height:none!important}
+  .inventory-detail-grid{grid-template-columns:1fr}
+}
+@media(max-width:820px){.sidebar{position:static!important}.main{margin-left:0!important;width:100%!important}}
+
+
+
+/* 0.7.8.9 — targeted layout containment only. No workflow logic changed. */
+#page-palletreceive,#page-marketplaces{min-width:0;max-width:100%;overflow-x:hidden}
+#page-palletreceive .panel,#page-marketplaces .panel{box-sizing:border-box;min-width:0;max-width:100%}
+#page-palletreceive label,#page-marketplaces label{box-sizing:border-box;min-width:0;max-width:100%}
+#page-palletreceive input,#page-palletreceive select,#page-palletreceive textarea,
+#page-marketplaces input,#page-marketplaces select,#page-marketplaces textarea{box-sizing:border-box!important;min-width:0!important;max-width:100%!important;width:100%}
+#page-palletreceive .pallet-home>*{min-width:0}
+#page-palletreceive .pallet-create-card{overflow:hidden}
+#page-palletreceive .pallet-create-card .form-row{grid-template-columns:1fr!important;min-width:0}
+#page-marketplaces .wb-packing-panel{overflow:hidden}
+#page-marketplaces .wb-packing-panel .panel-head{gap:12px;min-width:0;flex-wrap:wrap}
+#page-marketplaces .wb-packing-panel .panel-head>div{min-width:0}
+#page-marketplaces .wb-packing-panel .inline-controls{display:flex;flex:1 1 420px;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:0}
+#page-marketplaces .wb-packing-panel .inline-controls select{flex:1 1 160px;width:auto!important}
+#page-marketplaces .packing-flow{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;min-width:0}
+#page-marketplaces .packing-flow>.scan-step{min-width:0!important;max-width:100%;box-sizing:border-box}
+#page-marketplaces .packing-flow>.scan-step label{min-width:0!important}
+#page-marketplaces .print-settings{min-width:0;max-width:100%;box-sizing:border-box;display:grid!important;grid-template-columns:minmax(180px,240px) minmax(180px,280px) minmax(220px,1fr)!important;gap:10px 14px!important;align-items:end}
+#page-marketplaces .print-settings small{min-width:0;overflow-wrap:anywhere}
+#page-marketplaces .wb-packing-panel>.button-row{display:flex!important;flex-wrap:wrap!important;gap:8px!important;max-width:100%}
+#page-marketplaces .wb-packing-panel>.button-row button{max-width:100%;white-space:normal}
+#page-marketplaces #wbSupplies{min-width:0;max-width:100%}
+#page-marketplaces .supply-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important;align-items:center;min-width:0;max-width:100%;box-sizing:border-box}
+#page-marketplaces .supply-row-main{min-width:0;overflow:hidden}
+#page-marketplaces .supply-row-main b,#page-marketplaces .supply-row-main small{display:block;overflow-wrap:anywhere}
+#page-marketplaces .supply-actions{display:flex!important;gap:6px!important;flex-wrap:wrap!important;justify-content:flex-end;max-width:520px}
+#page-marketplaces .supply-actions button{white-space:nowrap}
+@media(max-width:1180px){
+  #page-marketplaces .packing-flow{grid-template-columns:1fr!important}
+  #page-marketplaces .print-settings{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #page-marketplaces .print-settings small{grid-column:1/-1}
+  #page-marketplaces .supply-row{grid-template-columns:1fr!important}
+  #page-marketplaces .supply-actions{justify-content:flex-start;max-width:none}
+}
+@media(max-width:760px){
+  #page-marketplaces .print-settings{grid-template-columns:1fr!important}
+}
+
+
+/* 0.7.8.20 — compact WB workspace + unrestricted local workflow selector. */
+#page-marketplaces .wb-packing-panel{overflow:hidden!important;min-width:0!important}
+#page-marketplaces .wb-packing-panel .packing-flow{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important;width:100%!important}
+#page-marketplaces .wb-packing-panel .print-settings{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important;width:100%!important;max-width:100%!important;gap:10px!important}
+#page-marketplaces .wb-packing-panel .print-settings>label{width:100%!important;min-width:0!important}
+#page-marketplaces .wb-packing-panel .print-settings small{grid-column:1/-1!important;white-space:normal!important}
+#page-marketplaces .wb-packing-panel>.button-row{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(185px,1fr))!important;width:100%!important;max-width:100%!important;gap:8px!important}
+#page-marketplaces .wb-packing-panel>.button-row button{width:100%!important;min-width:0!important;max-width:100%!important;white-space:normal!important;line-height:1.2!important;min-height:46px!important}
+#page-marketplaces .wb-filter-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;gap:10px!important;min-width:0!important;max-width:100%!important}
+#page-marketplaces .wb-filter-grid>*{min-width:0!important;max-width:100%!important}
+#page-marketplaces .wb-orders-head{display:flex!important;flex-wrap:wrap!important;gap:10px!important;min-width:0!important}
+#page-marketplaces .wb-orders-head .inline-controls{display:flex!important;flex-wrap:wrap!important;gap:8px!important;min-width:0!important}
+#page-marketplaces .wb-bulk-actions{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;gap:8px!important;width:100%!important;max-width:100%!important;align-items:stretch!important}
+#page-marketplaces .wb-bulk-actions>button,#page-marketplaces .wb-bulk-actions>.wb-status-control{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+#page-marketplaces .wb-bulk-actions>button{white-space:normal!important;line-height:1.2!important;min-height:48px!important}
+#page-marketplaces .wb-status-control{display:flex!important;flex-direction:column!important;justify-content:center!important;gap:3px!important;padding:5px 10px!important;border:1px solid var(--line,#dfe3ea)!important;border-radius:12px!important;background:var(--panel,#fff)!important}
+#page-marketplaces .wb-status-control span{font-size:11px!important;line-height:1.1!important;color:var(--muted,#667085)!important}
+#page-marketplaces .wb-status-control select{width:100%!important;border:0!important;padding:4px 0!important;background:transparent!important;font-weight:700!important;outline:none!important}
+@media(max-width:900px){
+  #page-marketplaces .wb-packing-panel .packing-flow,
+  #page-marketplaces .wb-packing-panel .print-settings,
+  #page-marketplaces .wb-packing-panel>.button-row,
+  #page-marketplaces .wb-filter-grid,
+  #page-marketplaces .wb-bulk-actions{grid-template-columns:1fr!important}
+}
+
+
+/* FC_R145F8_FBO_UI */
+#page-fbo .fbo-top-grid,#page-fbo .fbo-work-grid{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.4fr);gap:16px;align-items:start}#page-fbo .fbo-batch-list{display:grid;gap:8px;max-height:360px;overflow:auto}#page-fbo .fbo-batch-row{display:flex;justify-content:space-between;gap:14px;text-align:left;padding:12px 14px;border:1px solid var(--border,#e5e7eb);border-radius:12px;background:#fff}#page-fbo .fbo-batch-row.active{border-color:#5b4ad1;background:#f6f4ff}#page-fbo .fbo-batch-row span{display:grid;gap:3px}#page-fbo .fbo-label-row{display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:10px;align-items:end;padding:10px 0;border-bottom:1px solid #edf0f4}#page-fbo .fbo-label-row>div{display:grid;gap:3px}#page-fbo .fbo-box-cards{display:grid;gap:8px;margin-top:14px}@media(max-width:900px){#page-fbo .fbo-top-grid,#page-fbo .fbo-work-grid{grid-template-columns:1fr}#page-fbo .fbo-label-row{grid-template-columns:1fr}}
+
+/* FC_R145F12_UNIFIED_STORAGE_UI */
+#page-storage .storage-source-tag{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eef2ff;font-size:12px;font-weight:700}#page-storage .storage-actions{display:flex;gap:6px;flex-wrap:wrap}#page-storage .storage-actions button{padding:6px 9px}#page-storage td small{display:block;color:var(--muted,#667085);margin-top:3px}
+</style>
+  <link rel="stylesheet" href="/static/r145f24-ui.css?v=r145f24">
+  <link rel="stylesheet" href="/static/r145f27.css?v=r145f28-activebox">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">FC</div>
+        <div><strong>FulfillCore</strong><span>Складской учёт</span></div>
+      </div>
+      <nav id="mainNav" class="nav">
+        <div class="nav-group"><small>СКЛАД</small>
+          <button data-page="dashboard" class="active"><span>⌂</span>Главная</button>
+          <button data-page="palletreceive"><span>▣</span>Приёмка</button>
+          <button data-page="warehousework"><span>СБ</span>Сборка</button>
+          <button data-page="inventory"><span>▦</span>Остатки</button>
+          <button data-page="locations"><span>⌗</span>Ячейки</button>
+          <button data-page="containers"><span>□</span>Короба</button>
+          <button data-page="storage"><span>ХР</span>Хранение</button>
+          <button data-page="move"><span>⇄</span>Перемещение</button>
+          <button data-page="transit"><span>TR</span>Транзитный склад</button>
+          <button data-page="fbo"><span>FBO</span>Отгрузка FBO</button>
+          <button data-page="defectstorage"><span>БР</span>Брак</button>
+        </div>
+        <div class="nav-group"><small>МАРКЕТПЛЕЙСЫ</small>
+          <button data-page="marketplaces"><span>WB</span>Wildberries FBS</button>
+          <button data-page="ozon"><span>OZ</span>Ozon FBS</button>
+          <button data-page="products"><span>▤</span>Карточки WB</button>
+        </div>
+        <div class="nav-group"><small>УЧЁТ</small>
+          <button data-page="ship"><span>↗</span>Внутренняя отгрузка</button>
+          <button data-page="operations"><span>≡</span>История приёмки</button>
+          <button data-page="finance"><span>₽</span>Финансы и аналитика</button>
+          <button data-page="financehistory"><span>ИФ</span>История начислений</button>
+        </div>
+        <div class="nav-group"><small>НАСТРОЙКИ</small>
+          <button data-page="printsettings"><span>⎙</span>Настройки печати</button>
+          <button data-page="masterdata"><span>⚙</span>Справочники</button>
+          <button data-page="account"><span>☺</span>Личный кабинет</button>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span id="apiStatus">Проверка системы…</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">РАБОЧЕЕ МЕСТО</div>
+          <h1 id="pageTitle">Главная</h1>
+        </div>
+        <div class="context-selectors">
+          <label>Клиент<select id="clientSelect"></select></label>
+          <label>Склад<select id="warehouseSelect"></select></label>
+          <button id="refreshBtn" class="icon-btn" title="Обновить">↻</button>
+          <div class="user-box"><span id="currentUser">Пользователь</span><button id="logoutBtn" class="secondary mini" type="button">Выйти</button></div>
+        </div>
+      </header>
+
+      <section id="page-dashboard" class="page active">
+        <div class="stats-grid">
+          <article class="stat-card"><span>Остаток</span><strong id="statQty">0</strong><small>единиц на складе</small></article>
+          <article class="stat-card"><span>SKU</span><strong id="statSku">0</strong><small>позиций с остатком</small></article>
+          <article class="stat-card"><span>Ячейки</span><strong id="statLocations">0</strong><small>активных адресов</small></article>
+          <article class="stat-card"><span>Короба</span><strong id="statContainers">0</strong><small>активных контейнеров</small></article>
+        </div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-head"><div><span class="kicker">БЫСТРЫЙ СТАРТ</span><h2>Основная работа</h2></div></div>
+            <div class="quick-actions">
+              <button data-go="receive"><b>＋</b><span><strong>Принять товар</strong><small>Ячейка → короб → товар → количество</small></span></button>
+              <button data-go="bulkimport"><b>⇩</b><span><strong>Загрузить Excel</strong><small>Массово создать короба и раскладку товара</small></span></button>
+              <button data-go="inventory"><b>⌕</b><span><strong>Найти товар</strong><small>Система покажет ячейку и короб</small></span></button>
+              <button data-go="marketplaces"><b>↔</b><span><strong>WB / Ozon</strong><small>Заказы, остатки для сборки и этикетки</small></span></button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><span class="kicker">ПОСЛЕДНИЕ ДЕЙСТВИЯ</span><h2>Операции</h2></div><button class="link-btn" data-go="operations">Все</button></div>
+            <div id="recentOps" class="activity-list empty-state">Операций пока нет</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-receive" class="page">
+        <div class="section-backbar"><button type="button" class="secondary" data-go="palletreceive">← Приёмка</button><div><span class="kicker">НОВАЯ ПРИЁМКА</span><b>Ручная приёмка</b></div></div>
+        <div class="workspace-grid">
+          <form id="receiveForm" class="panel form-panel">
+            <div class="panel-head"><div><span class="kicker">ПРИЁМКА</span><h2>Принять товар в ячейку</h2></div><span class="badge">Сканер готов</span></div>
+            <div class="scan-step"><span>1</span><label>Ячейка<input id="receiveLocation" autocomplete="off" placeholder="Отсканируйте ячейку" required /></label><em id="receiveLocationHint"></em></div>
+            <div class="scan-step"><span>2</span><label>Короб<input id="receiveContainer" autocomplete="off" placeholder="ШК или название короба" /></label><em id="receiveContainerHint"></em></div>
+            <div class="scan-step"><span>3</span><label>Товар<input id="receiveSku" autocomplete="off" placeholder="ШК товара / артикул" required /></label><em id="receiveSkuHint"></em></div>
+            <div class="form-row">
+              <label>Количество<input id="receiveQty" type="number" min="0.001" step="0.001" value="1" required /></label>
+              <label>Сотрудник<input id="receiveBy" placeholder="Имя сотрудника" /></label>
+            </div>
+            <div class="form-row">
+              <label>Режим остатка<select id="receiveMode"><option value="ADD">Добавить к остатку</option><option value="SET">Изменить остаток на указанное количество</option></select></label>
+              <div class="result-card"><b>WB</b><span id="receiveModeHint">Добавить: остаток WB увеличится на принятое количество.</span></div>
+            </div>
+            <label>Поставка / комментарий<input id="receiveReference" placeholder="Например: Поставка 937" /></label>
+            <button type="submit" class="primary big">Принять товар на склад</button>
+            <button id="syncReceivingWbBtn" type="button" class="secondary big">Отправить приёмку на WB FBS <span id="pendingWbCount"></span></button>
+            <small class="muted">Приёмка сначала меняет только остаток FulfillCore. На WB остатки уйдут только после нажатия этой кнопки.</small>
+          </form>
+          <div class="panel help-panel">
+            <span class="kicker">РЕЗУЛЬТАТ</span><h2>Приёмка без ручного учёта</h2>
+            <p>Если короб новый, система создаст его. Если короб уже существует, товар попадёт в существующий короб. Остаток изменяется только через операцию.</p>
+            <div class="result-card" id="receiveResult"><b>Последняя приёмка</b><span>Пока операций нет</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-palletreceive" class="page">
+        <div id="palletReceiptHome" class="pallet-home">
+          <div class="panel pallet-create-card">
+            <div class="panel-head"><div><span class="kicker">ПРИЁМКА</span><h2>Новая приёмка</h2></div><span class="badge">Шаг 1</span></div>
+            <div class="receiving-methods">
+              <button type="button" class="receiving-method active" data-receive-method="PALLET_BOX"><b>Палеты → короба</b><span>Сначала палета, затем до 16 коробов на ней</span></button>
+              <button type="button" class="receiving-method" data-go="bulkimport"><b>Excel · массовая</b><span>Приёмка товара из готового файла</span></button>
+              <button type="button" class="receiving-method" data-go="receive"><b>Ручная приёмка</b><span>Добавить одну позицию вручную</span></button>
+            </div>
+            <div class="form-row"><label>Название приёмки<input id="palletReceiptName" placeholder="Например: Поставка 25.08" /></label><label>Комментарий<input id="palletReceiptReference" placeholder="Клиент / машина / поставка" /></label></div>
+            <button id="createPalletReceiptBtn" type="button" class="primary big">Создать палетную приёмку</button>
+          </div>
+          <div class="panel pallet-history-card">
+            <div class="panel-head"><div><span class="kicker">ЖУРНАЛ</span><h2>Предыдущие приёмки</h2></div><button id="refreshPalletReceiptListBtn" type="button" class="secondary mini">Обновить</button></div>
+            <div id="palletReceiptList" class="receipt-list"><div class="empty-state">Загрузка…</div></div>
+          </div>
+        </div>
+
+        <div id="palletReceiptDetailView" class="hidden">
+          <div class="pallet-detail-toolbar panel">
+            <button id="backToPalletReceiptsBtn" type="button" class="secondary">← Приёмка</button>
+            <div class="pallet-detail-title"><span class="kicker">ТЕКУЩАЯ ПРИЁМКА</span><h2 id="palletReceiptDetailTitle">—</h2><small id="palletReceiptDetailMeta" class="muted"></small></div>
+            <div class="button-row"><button id="exportPalletReceiptBtn" type="button" class="secondary">Выгрузить Excel</button><button id="deletePalletReceiptBtn" type="button" class="secondary danger-outline">Удалить приёмку</button></div>
+            <select id="palletReceiptSelect" class="hidden"><option value="">Выберите приёмку</option></select>
+          </div>
+          <div class="pallet-workspace">
+            <div class="panel form-panel pallet-scan-panel">
+              <div class="panel-head"><div><span class="kicker">СКАНИРОВАНИЕ</span><h2>Палета → короба</h2></div><span class="badge">до 16 коробов</span></div>
+              <div class="scan-step"><span>1</span><label>Палета<input id="palletReceivePallet" autocomplete="off" placeholder="Скан / свободное название палеты" /></label><em id="palletReceivePalletHint"></em></div>
+              <button id="addPalletBtn" type="button" class="secondary">Принять палету</button>
+              <div class="scan-step"><span>2</span><label>Короб<input id="palletReceiveBox" autocomplete="off" placeholder="Скан / свободное название короба" /></label><em id="palletReceiveBoxHint"></em></div>
+              <button id="addPalletBoxBtn" type="button" class="primary big">Добавить короб на палету</button>
+              <button id="closePalletBtn" type="button" class="secondary">Закрыть палету → следующая</button>
+              <small class="muted">После 16-го короба следующая палета начинается автоматически. Неполную палету можно закрыть вручную.</small>
+            </div>
+            <div class="panel pallet-structure-panel">
+              <div class="panel-head"><div><span class="kicker">СТРУКТУРА</span><h2>Палеты и короба</h2></div><button id="refreshPalletReceiptBtn" class="secondary mini" type="button">Обновить</button></div>
+              <div id="palletReceiptSummary" class="pallet-summary hidden"></div>
+              <div id="palletReceiptStructure" class="activity-list empty-state">Приёмка пока пустая</div>
+            </div>
+          </div>
+          <div class="panel pallet-excel-panel">
+            <div class="panel-head"><div><span class="kicker">ШАГ 2 · EXCEL</span><h2>Заполнить принятые короба товаром</h2></div><span class="badge neutral">.xlsx / .xlsm</span></div>
+            <p class="muted">Формат: 1 — короб, 2 — ШК товара, 3 — количество, 4 — артикул, 5 — размер. После загрузки товар остаётся связан с коробом и палетой.</p>
+            <div class="form-row"><label>Excel раскладки<input id="palletLayoutFile" type="file" accept=".xlsx,.xlsm" /><small id="palletLayoutFileName" class="muted">Файл не выбран</small></label><label>Сотрудник<input id="palletLayoutBy" placeholder="Кто загрузил" /></label></div>
+            <div class="button-row compact-file-actions"><button id="clearPalletLayoutFileBtn" class="secondary hidden" type="button">Убрать выбранный файл</button></div>
+            <div class="button-row"><button id="uploadPalletLayoutBtn" class="primary" type="button">Загрузить раскладку в короба</button><button id="syncPalletReceivingWbBtn" class="secondary" type="button">Отправить приёмку на WB FBS <span id="pendingPalletWbCount"></span></button></div>
+            <div id="palletLayoutResult" class="result-card"><b>Товар пока не принят</b><span>Сначала примите палеты и короба, затем загрузите Excel.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-bulkimport" class="page">
+        <div class="section-backbar"><button type="button" class="secondary" data-go="palletreceive">← Приёмка</button><div><span class="kicker">НОВАЯ ПРИЁМКА</span><b>Excel · массовая</b></div></div>
+        <div class="workspace-grid">
+          <div class="panel form-panel">
+            <div class="panel-head"><div><span class="kicker">EXCEL · ДОБАВИТЬ</span><h2>Массовая приёмка</h2></div><span class="badge neutral">.xlsx / .xlsm</span></div>
+            <label>Формат файла<select id="bulkReceiveFormat"><option value="ADDRESS5">5 колонок · ячейка/короб, ШК, количество, артикул, размер</option><option value="NOADDRESS2">2 колонки · ШК, количество · без адреса</option></select></label>
+            <label>Файл<input id="excelFile" type="file" accept=".xlsx,.xlsm" /></label>
+            <div class="form-row"><label>Сотрудник<input id="importBy" placeholder="Кто загрузил" /></label><label>Поставка / комментарий<input id="importReference" placeholder="Например: Поставка 937" /></label></div>
+            <div class="button-row"><button id="previewExcelBtn" class="secondary" type="button">Проверить формат</button><button id="executeExcelBtn" class="primary" type="button">Загрузить на склад</button></div>
+            <button id="syncBulkReceivingWbBtn" class="secondary big" type="button">Отправить приёмку на WB FBS <span id="pendingBulkWbCount"></span></button>
+            <small class="muted">Массовая приёмка сначала добавляет товар только в FulfillCore. После отдельной кнопки «Отправить приёмку на WB FBS» остаток WB увеличится на принятое количество.</small>
+          </div>
+          <div class="panel"><span class="kicker">ФОРМАТЫ</span><h2>Свободные названия</h2><div id="excelPreview" class="result-card"><b>5 колонок</b><span>1 — ячейка/короб, 2 — ШК товара, 3 — количество, 4 — артикул, 5 — размер.</span><b>2 колонки</b><span>1 — ШК товара, 2 — количество. Товар кладётся в «БЕЗ-АДРЕСА».</span><span>Коды могут быть любыми: 15, A-15, BOX_001, КОР-7, 14-06-15.</span></div></div>
+        </div>
+      </section>
+
+      <section id="page-inventory" class="page">
+        <div class="panel">
+          <div class="panel-head inventory-head">
+            <div><span class="kicker">ТЕКУЩИЙ ОСТАТОК</span><h2>Товар на складе</h2></div>
+            <input id="inventorySearch" class="search" placeholder="Артикул, размер, ШК, ячейка, короб" />
+          </div>
+          <div class="table-wrap inventory-table-wrap"><table class="inventory-table"><thead><tr><th>Фото</th><th>Товар</th><th>Артикул</th><th>Размер</th><th>ШК</th><th>Короб / ячейка</th><th class="num">Количество</th><th></th></tr></thead><tbody id="inventoryBody"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="page-locations" class="page">
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-head"><div><span class="kicker">АДРЕСНОЕ ХРАНЕНИЕ</span><h2>Ячейки</h2></div><input id="locationSearch" class="search small-search" placeholder="Найти ячейку" /></div>
+            <div id="locationsGrid" class="locations-grid"></div>
+          </div>
+          <form id="quickLocationForm" class="panel compact-form sticky-card">
+            <span class="kicker">НОВАЯ ЯЧЕЙКА</span><h2>Создать ячейку</h2>
+            <label>Название / код<input id="quickLocationCode" placeholder="14-06-15" required /></label>
+            <label>Штрихкод<input id="quickLocationBarcode" placeholder="Можно такой же" /></label>
+            <button class="primary" type="submit">Создать ячейку</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="page-containers" class="page">
+        <div class="panel">
+          <div class="panel-head inventory-head">
+            <div><span class="kicker">КОРОБА</span><h2>Где что лежит</h2></div>
+            <input id="containerSearch" class="search" placeholder="Название или ШК короба" />
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Название</th><th>QR / имя короба</th><th>Ячейка</th><th>SKU</th><th class="num">Штук</th><th>Действия</th></tr></thead><tbody id="containersBody"></tbody></table></div>
+        </div>
+        <div id="containerDetailPanel" class="panel mt18 hidden"></div>
+      </section>
+
+      <section id="page-storage" class="page">
+        <div class="panel">
+          <div class="panel-head"><div><span class="kicker">ЕДИНОЕ ХРАНЕНИЕ</span><h2>Все короба и занятые ячейки</h2><p>Для хранения считаются активные физические короба с товаром и ячейки/палеты, где товар лежит напрямую без короба. Такая занятая ячейка считается как 1 коробо-место. Транзит считается отдельно, неразобранные ПВЗ-короба без ШК — ручным счётчиком.</p></div><button id="storageRefresh" class="secondary" type="button">Обновить</button></div>
+          <div id="storageSummary" class="stats-grid"></div>
+        </div>
+        <div class="two-col mt18">
+          <section class="panel compact-form">
+            <span class="kicker">КОРОБА БЕЗ ШК</span><h3>Неразобранные короба ПВЗ</h3>
+            <p class="muted">Это отдельный счётчик хранения. Он не создаёт товарные остатки. Пока короб не разобран, уменьшаем количество вручную.</p>
+            <label>Название / партия<input id="storageManualName" maxlength="200" value="Неразобранные короба ПВЗ" placeholder="Например: ПВЗ Саваш 25.09"></label>
+            <label>Количество коробов<input id="storageManualCount" type="number" min="1" step="1" value="1"></label>
+            <label>Комментарий<input id="storageManualNote" maxlength="1000" placeholder="Необязательно"></label>
+            <button id="storageManualAdd" class="primary" type="button">Добавить на хранение</button>
+            <div id="storageManualMsg" class="msg"></div>
+          </section>
+          <section class="panel compact-form">
+            <span class="kicker">ПОИСК</span><h3>Фильтр хранения</h3>
+            <label>Короб / ячейка / палета / партия<input id="storageSearch" autocomplete="off" placeholder="BOX..., 1-01-12, палета, партия"></label>
+            <label>Источник<select id="storageSource"><option value="ALL">Все активные</option><option>Основной склад</option><option>FBS</option><option>Основной + FBS</option><option>Основной / FBS</option><option>Транзитный склад</option><option>ПВЗ · неразобранные</option></select></label>
+            <small class="muted">Пустые, архивные, брак и FBO в автоматический счёт хранения не входят. Один физический короб считается один раз, даже если внутри есть и MAIN, и FBS.</small>
+          </section>
+        </div>
+        <section class="panel mt18">
+          <div class="panel-head"><div><span class="kicker">АКТИВНОЕ ХРАНЕНИЕ</span><h2>Короба с товаром</h2></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Источник</th><th>Короб / ячейка / группа</th><th>Где находится</th><th>Товар, ед.</th><th>Коробо-мест</th><th>Статус</th><th>Действия</th></tr></thead><tbody id="storageBody"></tbody></table></div>
+          <div id="storageMsg" class="msg"></div>
+        </section>
+      </section>
+
+      <section id="page-move" class="page">
+        <div class="two-col">
+          <form id="moveContainerForm" class="panel form-panel">
+            <div class="panel-head"><div><span class="kicker">ЦЕЛЫЙ КОРОБ</span><h2>Переместить короб</h2></div></div>
+            <div class="scan-step"><span>1</span><label>Короб<input id="moveContainerBarcode" autocomplete="off" placeholder="ШК или название короба" required /></label><em id="moveContainerHint"></em></div>
+            <div class="scan-step"><span>2</span><label>Новая ячейка<input id="moveDestination" autocomplete="off" placeholder="ШК ячейки" required /></label><em id="moveDestinationHint"></em></div>
+            <label>Сотрудник<input id="moveBy" placeholder="Имя сотрудника" /></label>
+            <button type="submit" class="primary big">Переместить короб</button>
+            <div class="result-card" id="moveResult"><b>Последнее перемещение</b><span>Пока операций нет</span></div>
+          </form>
+          <form id="moveItemForm" class="panel form-panel">
+            <div class="panel-head"><div><span class="kicker">ЧАСТЬ ТОВАРА</span><h2>Переложить товар</h2></div></div>
+            <label>Товар<input id="moveItemSku" placeholder="ШК / артикул" required /></label>
+            <div class="form-row"><label>Из ячейки<input id="moveItemSourceLocation" required /></label><label>Из короба<input id="moveItemSourceContainer" placeholder="Можно пусто" /></label></div>
+            <div class="form-row"><label>В ячейку<input id="moveItemDestinationLocation" required /></label><label>В короб<input id="moveItemDestinationContainer" placeholder="Новый или существующий" /></label></div>
+            <div class="form-row"><label>Количество<input id="moveItemQty" type="number" min="0.001" step="0.001" value="1" required /></label><label>Сотрудник<input id="moveItemBy" /></label></div>
+            <button type="submit" class="primary big">Переместить товар</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="page-marketplaces" class="page">
+        <div class="panel mt18">
+          <div class="panel-head">
+            <div><span class="kicker">WILDBERRIES · СКЛАДЫ ОТГРУЗКИ</span><h2>Какие склады показывать</h2></div>
+            <div class="inline-controls"><button id="wbWarehouseToggleBtn" class="secondary" type="button" aria-expanded="true">Склады ▴</button><button id="loadWbWarehousesBtn" class="secondary" type="button">Обновить склады WB</button><button id="diagnoseWbWarehouseBtn" class="secondary" type="button">Диагностика склада</button><button id="saveWbWarehousesBtn" class="primary" type="button">Сохранить выбор</button></div>
+          </div>
+          <div id="wbWarehousePanelBody">
+            <p class="muted">Для основного склада выберите <b>Работа</b>. Второй можно поставить в <b>Наблюдение</b> — заказы видны, но сборка, ЧЗ и изменение поставок заблокированы. Остальные склады поставьте <b>Не показывать</b>.</p>
+            <div id="wbWarehouseSettings" class="empty-state">Выберите кабинет WB и нажмите «Обновить склады WB».</div><div id="wbWarehouseDiagnostics" class="result-card hidden"></div>
+          </div>
+        </div>
+
+        <div class="panel mt18 wb-packing-panel">
+          <div class="panel-head">
+            <div><span class="kicker">WILDBERRIES FBS · УПАКОВКА</span><h2>ШК товара → Честный знак → этикетка WB</h2></div>
+            <div class="inline-controls"><select id="wbCredentialSelect"></select><button id="syncWbOrdersBtn" class="secondary" type="button">Синхронизировать WB</button><button id="importWbDataBtn" class="primary" type="button">Импортировать данные WB</button></div>
+          </div>
+          <div class="packing-flow">
+            <div class="scan-step"><span>1</span><label>Штрихкод товара<input id="wbPackProduct" autocomplete="off" placeholder="Отсканируйте ШК товара" /></label><em id="wbPackProductHint">Система выберет следующий заказ «На сборке» с этим товаром.</em></div>
+            <div class="scan-step"><span>2</span><label>Честный знак (DataMatrix)<input id="wbPackChz" autocomplete="off" placeholder="Сначала отсканируйте товар" disabled /></label><em id="wbPackChzHint">Без ЧЗ заказ не считается собранным.</em></div>
+          </div>
+          <div id="wbPackingResult" class="result-card"><b>Текущий заказ</b><span>Отсканируйте штрихкод товара.</span></div>
+          <div class="button-row"><button id="wbPackingResetBtn" class="secondary" type="button">Сбросить</button><button id="wbPackingSkipBtn" class="secondary" type="button" disabled>Пропустить заказ → следующий</button><button id="wbPackingProductLabelBtn" class="secondary" type="button" disabled>Печать ШК товара</button></div>
+        </div>
+
+        <div class="panel mt18">
+          <div class="panel-head wb-orders-head">
+            <div><span class="kicker">WILDBERRIES FBS</span><h2>Заказы</h2></div>
+            <div class="inline-controls"><select id="wbWarehouseView"><option value="">Работа + наблюдение</option><option value="WORK">Только рабочий склад</option><option value="WATCH">Только наблюдение</option></select><button id="wbColumnsBtn" class="secondary" type="button">⚙ Столбцы</button></div>
+          </div>
+          <div class="wb-filter-grid">
+            <label><span>№ заказа</span><input id="wbOrderNumberFilter" class="search" inputmode="numeric" placeholder="Найти конкретный заказ" /></label>
+            <label><span>Артикул</span><input id="wbArticleFilter" class="search" placeholder="Артикул WB / продавца" /></label>
+            <label><span>Ячейка / короб</span><input id="wbLocationFilter" class="search" placeholder="Откуда зарезервирован товар" /></label>
+            <label><span>Поставка</span><input id="wbSupplyFilter" class="search" placeholder="ID поставки" /></label>
+            <label><span>Доп. поиск</span><input id="wbOrderSearch" class="search" placeholder="UID / название / ШК" /></label>
+          </div>
+          <div id="wbColumnsPanel" class="columns-panel hidden"></div>
+          <div id="wbOrdersStaleNotice" class="sync-notice hidden">Показываем последние сохранённые данные. Синхронизация с WB продолжается в фоне.</div>
+          <div id="wbStatusTabs" class="status-tabs">
+            <button class="active" data-wb-filter="">Все <b id="wbCountAll">0</b></button>
+            <button data-wb-filter="NEW">Новые <b id="wbCountNew">0</b></button>
+            <button data-wb-filter="PICKING">На сборке <b id="wbCountPicking">0</b></button>
+            <button data-wb-filter="PACKED">Упаковано <b id="wbCountPacked">0</b></button>
+            <button data-wb-filter="SENT">Отправлены <b id="wbCountSent">0</b></button>
+            <button data-wb-filter="DELIVERED">Получены <b id="wbCountDelivered">0</b></button>
+            <button data-wb-filter="CANCELLED">Отменены <b id="wbCountCancelled">0</b></button>
+          </div>
+          <div class="button-row wb-bulk-actions">
+            <button id="wbPickingListBtn" class="primary" disabled>На сборку · Excel</button>
+            <label class="wb-status-control"><span>Изменить статус выбранных</span><select id="wbBulkStatusSelect" disabled>
+              <option value="">Выберите статус…</option>
+              <option value="NEW">Новые</option>
+              <option value="PICKING">На сборке</option>
+              <option value="PACKED">Упаковано</option>
+              <option value="SENT">Отправлены</option>
+            </select></label>
+            <button id="wbCreateSupplyBtn" class="secondary" disabled>Создать поставку WB</button>
+            <button id="wbShipPackedBtn" class="primary" disabled>Создать отгрузку из упакованных</button>
+            <button id="wbPrintLabelsBtn" class="secondary" disabled>Повторная печать этикеток</button>
+          </div>
+          <div class="wb-scroll-label">Горизонтальная прокрутка таблицы</div><div id="wbOrdersTopScroll" class="wb-orders-top-scroll"><div></div></div>
+          <div id="wbOrdersScroll" class="table-wrap wb-orders-table"><table><thead id="wbOrdersHead"></thead><tbody id="wbOrdersBody"><tr><td class="empty-state">Заказы загружаются…</td></tr></tbody></table></div>
+          <div class="wb-pagination" id="wbOrdersPagination">
+            <div><span id="wbOrdersRange">0–0 из 0</span></div>
+            <div class="inline-controls"><label>Строк на странице <select id="wbPageSize"><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="500">500</option></select></label><button id="wbFirstPage" class="secondary mini page-nav" type="button" title="Первая страница">|←</button><button id="wbPrevPage" class="secondary mini page-nav" type="button" title="Предыдущая страница">←</button><span id="wbPageInfo">1 / 1</span><button id="wbNextPage" class="secondary mini page-nav" type="button" title="Следующая страница">→</button><button id="wbLastPage" class="secondary mini page-nav" type="button" title="Последняя страница">→|</button></div>
+          </div>
+        </div>
+
+        <div class="panel mt18">
+          <div class="panel-head"><div><span class="kicker">ПОСТАВКИ WB</span><h2>Актуальные поставки</h2></div><div class="inline-controls"><label class="switch-label"><input id="wbShowClosedSupplies" type="checkbox" /> Показывать закрытые</label><button id="loadWbSuppliesBtn" class="secondary">Обновить</button></div></div>
+          <div id="wbSupplies" class="empty-state">Поставок пока нет.</div>
+        </div>
+        <details id="wbSupplyMovePanel" class="panel mt18 fc-supply-ui">
+          <summary><span class="kicker">ПОСТАВКИ WB</span><b>Перенос заказов между поставками</b></summary>
+          <p class="muted">Используется подключение WB, выбранное выше в разделе FBS. Локальная связь с поставкой меняется только после подтверждения WB.</p>
+          <div id="wbSupplyMoveCapability" class="fc-finance-msg" role="status"></div>
+          <form id="wbSupplyMoveForm" class="fc-finance-form">
+            <fieldset id="wbSupplyMoveFields">
+              <div class="fc-finance-form-grid"><label>Исходная поставка<input name="source" required maxlength="120" placeholder="ID исходной поставки WB"></label><label>Новая поставка<input name="target" required maxlength="120" placeholder="ID новой поставки WB"></label></div>
+              <label>Номера заказов WB<textarea name="orders" required rows="3" placeholder="По одному в строке или через запятую"></textarea></label>
+              <button id="wbSupplyMoveSubmit" class="primary" type="submit" disabled>Перенести в новую поставку</button>
+            </fieldset>
+          </form>
+          <div id="wbSupplyMoveMsg" class="fc-finance-msg" role="status" aria-live="polite"></div>
+          <div id="wbSupplyMoveResult"></div>
+        </details>
+      </section>
+
+
+      <section id="page-ozon" class="page">
+        <div class="panel">
+          <div class="panel-head"><div><span class="kicker">OZON FBS</span><h2>Отправления</h2></div><div class="inline-controls"><select id="ozonCredentialSelect"></select><button id="loadOzonPostingsBtn" class="secondary">Обновить</button><button id="ozonPrintLabelsBtn" class="primary" disabled>Печать этикеток</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th><input id="ozonCheckAll" type="checkbox" /></th><th>Отправление</th><th>Статус</th><th>Товары</th><th>Где лежит</th></tr></thead><tbody id="ozonPostingsBody"><tr><td colspan="5" class="empty-state">Подключите Ozon и нажмите «Обновить».</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="page-products" class="page">
+        <div class="products-layout">
+          <div class="panel form-panel product-import-panel">
+            <div class="panel-head"><div><span class="kicker">WILDBERRIES · КАРТОЧКИ</span><h2>Импорт карточек</h2></div><select id="wbProductCredentialSelect"></select></div>
+            <label>Артикулы WB (nmID) или артикулы продавца<textarea id="wbProductArticles" rows="6" placeholder="По одному в строке или через запятую"></textarea></label>
+            <div class="button-row"><button id="importWbProductsBtn" class="primary" type="button">Импортировать</button><button id="importAllWbProductsBtn" class="secondary" type="button">Импортировать все</button></div>
+            <small class="muted">Для карточек ключ WB должен иметь доступ к категории «Контент». Заказы FBS продолжают работать через категорию Marketplace.</small>
+          </div>
+          <div class="panel product-catalog-panel">
+            <div class="panel-head"><div><span class="kicker">КАТАЛОГ</span><h2>Карточки товара</h2></div><div class="inline-controls"><input id="wbProductSearch" class="search small-search" placeholder="nmID / артикул / название / ШК" /><button id="refreshWbProductsBtn" class="secondary" type="button">Обновить список</button></div></div>
+            <div id="wbProductsGrid" class="product-grid"><div class="empty-state">Импортируйте карточки WB.</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-account" class="page">
+        <div class="two-col">
+          <form id="marketCredentialForm" class="panel compact-form">
+            <div class="panel-head"><div><span class="kicker">ЛИЧНЫЙ КАБИНЕТ · ИНТЕГРАЦИИ</span><h2>Добавить API</h2></div></div>
+            <label>Маркетплейс<select id="marketProvider"><option value="WB">Wildberries</option><option value="OZON">Ozon</option></select></label>
+            <label>Название кабинета<input id="marketName" placeholder="Например: Интрейд WB" required /></label>
+            <label id="ozonClientIdLabel" class="hidden">Ozon Client-Id<input id="marketClientId" placeholder="Client-Id" /></label>
+            <label>API-ключ<input id="marketApiKey" type="password" autocomplete="new-password" placeholder="API-ключ" required /></label>
+            <button type="submit" class="primary">Сохранить подключение</button>
+            <small class="muted">API-ключи вводятся только здесь. После отключения история заказов остаётся, а ключ удаляется из активного подключения.</small>
+          </form>
+          <div class="panel">
+            <div class="panel-head"><div><span class="kicker">ПОДКЛЮЧЕНИЯ</span><h2>Кабинеты</h2></div></div>
+            <div id="marketCredentials" class="empty-state">Подключений пока нет.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-ship" class="page">
+        <div class="workspace-grid">
+          <form id="shipForm" class="panel form-panel">
+            <div class="panel-head"><div><span class="kicker">ВНУТРЕННЯЯ ОТГРУЗКА</span><h2>Списать товар со склада</h2></div></div>
+            <div class="scan-step"><span>1</span><label>Ячейка<input id="shipLocation" autocomplete="off" placeholder="ШК ячейки" required /></label><em id="shipLocationHint"></em></div>
+            <div class="scan-step"><span>2</span><label>Короб<input id="shipContainer" autocomplete="off" placeholder="ШК/название короба (можно пусто)" /></label><em id="shipContainerHint"></em></div>
+            <div class="scan-step"><span>3</span><label>Товар<input id="shipSku" autocomplete="off" placeholder="ШК / артикул" required /></label><em id="shipSkuHint"></em></div>
+            <div class="form-row"><label>Количество<input id="shipQty" type="number" min="0.001" step="0.001" value="1" required /></label><label>Сотрудник<input id="shipBy" /></label></div>
+            <label>Направление / поставка<input id="shipReference" placeholder="Например: WB Электросталь" /></label>
+            <button type="submit" class="primary big">Отгрузить</button>
+          </form>
+          <div class="panel help-panel"><span class="kicker">ВАЖНО</span><h2>WB и Ozon — через «Маркетплейсы»</h2><p>Эта форма нужна для обычной внутренней отгрузки. Заказы маркетплейсов, их этикетки и поставки оформляйте во вкладке «Маркетплейсы».</p><div class="result-card" id="shipResult"><b>Последняя отгрузка</b><span>Пока операций нет</span></div></div>
+        </div>
+      </section>
+
+      <section id="page-operations" class="page">
+        <div class="panel">
+          <div class="panel-head"><div><span class="kicker">ИСТОРИЯ ПРИЁМКИ</span><h2>История приёмки</h2><p>Отдельные приёмки — ниже. Общая выгрузка: приёмка, списание, перемещения и корректировки. Резервы и служебные записи — отдельно. Время московское.</p></div><div class="inline-controls"><button id="auditExportBtn" class="secondary" type="button">Выгрузить движения Excel (МСК)</button><select id="operationFilter"><option value="RECEIVING_ALL">Все приёмки</option><option value="RECEIVING">Приёмка</option><option value="RECEIVING_IMPORT">Импорт Excel</option><option value="MOVE">Перемещение</option><option value="SHIPPING">Отгрузка</option><option value="ADJUSTMENT">Корректировка</option></select></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Дата</th><th>Операция</th><th>Товар</th><th>Кол-во</th><th>Откуда</th><th>Куда</th><th>Сотрудник</th><th>Основание</th></tr></thead><tbody id="operationsBody"></tbody></table></div>
+        </div>
+      </section>
+
+
+      <section id="page-transit" class="page">
+        <section class="panel transit-hub-head">
+          <div class="panel-head"><div><span class="kicker">ТРАНЗИТНЫЙ СКЛАД</span><h2>Товар поставщиков и транзитные партии</h2><p>Новые партии ведутся отдельно от Основного склада и FBS. Поставщик и номер партии фиксируются при приёмке; куда товар уезжает, указывается только в момент физической отправки.</p></div><button id="transitRefresh" class="secondary" type="button">Обновить</button></div>
+          <div class="transit-tabs" role="tablist">
+            <button type="button" class="secondary active" data-transit-tab="active">Активные товары</button>
+            <button type="button" class="secondary" data-transit-tab="departed">Покинули склад</button>
+            <button type="button" class="secondary" data-transit-tab="suppliers">Поставщики</button>
+          </div>
+        </section>
+
+        <div id="transitViewActive" class="transit-view">
+          <div class="transit-grid">
+            <section class="panel transit-create">
+              <span class="kicker">НОВАЯ ПАРТИЯ</span><h3>Принять товар поставщика</h3>
+              <label>Поставщик<input id="transitSupplier" list="transitSupplierOptions" maxlength="200" autocomplete="off" placeholder="Например: Аслан" required></label>
+              <datalist id="transitSupplierOptions"></datalist>
+              <label>Номер партии<input id="transitLot" maxlength="160" autocomplete="off" placeholder="Например: 25-09-2026-01" required></label>
+              <button id="transitCreate" class="primary" type="button">Создать партию</button>
+              <div class="transit-search"><input id="transitActiveSearch" autocomplete="off" placeholder="Поиск: партия, поставщик, ШК, артикул, размер"></div>
+              <div id="transitRows" class="transit-list"></div>
+            </section>
+            <section id="transitDetail" class="panel"><div class="empty-state">Создайте или откройте активную транзитную партию слева.</div></section>
+          </div>
+        </div>
+
+        <div id="transitViewDeparted" class="transit-view hidden">
+          <div class="transit-grid">
+            <section class="panel transit-create">
+              <span class="kicker">ИСТОРИЯ</span><h3>Покинули склад</h3>
+              <p class="muted">Здесь только физически отправленные партии. История не смешивается с товаром, который ещё находится на складе.</p>
+              <div class="transit-search"><input id="transitHistorySearch" autocomplete="off" placeholder="Поиск по партии, поставщику, ШК, артикулу, месту отправки"></div>
+              <div id="transitHistoryRows" class="transit-list"></div>
+            </section>
+            <section id="transitHistoryDetail" class="panel"><div class="empty-state">Выберите отправленную партию слева.</div></section>
+          </div>
+        </div>
+
+        <div id="transitViewSuppliers" class="transit-view hidden">
+          <div class="transit-grid">
+            <section class="panel transit-create">
+              <span class="kicker">ПОСТАВЩИКИ</span><h3>Карточки поставщиков</h3>
+              <p class="muted">Все партии, товар и история приёмки одного поставщика собраны в одной карточке.</p>
+              <div class="transit-search"><input id="transitSupplierSearch" autocomplete="off" placeholder="Поиск поставщика"></div>
+              <div id="transitSupplierRows" class="transit-list"></div>
+            </section>
+            <section id="transitSupplierDetail" class="panel"><div class="empty-state">Выберите поставщика слева.</div></section>
+          </div>
+        </div>
+        <div id="transitMsg" class="msg"></div>
+      </section>
+
+      <section id="page-fbo" class="page">
+        <section class="panel">
+          <div class="panel-head"><div><span class="kicker">ОТГРУЗКА FBO · ФУНДАМЕНТ</span><h2>Подготовка товара, ШК/ЧЗ и раскладка по коробам</h2><p>Этот раздел не изменяет MAIN/FBS и не списывает складские остатки. Он хранит только подготовку FBO, PDF-этикетки и упаковочную раскладку.</p></div><button id="fboRefresh" class="secondary" type="button">Обновить</button></div>
+          <div class="fbo-top-grid">
+            <div class="compact-form">
+              <label>Сотрудник<input id="fboWorker" autocomplete="off" placeholder="Имя сотрудника"></label>
+              <label>Название партии FBO<input id="fboBatchName" maxlength="200" placeholder="Например: FBO Коледино 25.09"></label>
+              <label>Источник<select id="fboBatchSource"><option>Собрано со склада</option><option>Пришло с фуры</option><option>Другое</option></select></label>
+              <label>Комментарий<input id="fboBatchComment" maxlength="1000" placeholder="Необязательно"></label>
+              <button id="fboCreate" class="primary" type="button">Создать FBO-партию</button>
+            </div>
+            <div><h3>Партии FBO</h3><div id="fboBatchRows" class="fbo-batch-list"></div></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><div><span class="kicker">ТЕКУЩАЯ FBO-ПАРТИЯ</span><h2 id="fboCurrentTitle">Выберите партию</h2><p id="fboCurrentMeta">—</p></div><button id="fboExport" class="secondary" type="button">Excel по коробам для клиента</button></div>
+          <div class="fbo-work-grid">
+            <div class="panel compact-form">
+              <h3>ШК товара PDF</h3><label>PDF с ШК<input id="fboBarcodePdf" type="file" accept="application/pdf,.pdf"></label><div class="button-row"><button id="fboUploadBarcode" class="secondary" type="button">Разделить PDF</button><button id="fboPrintBarcode" class="primary" type="button">Печатать выбранное</button></div><div id="fboBarcodeGroups"></div>
+            </div>
+            <div class="panel compact-form">
+              <h3>ЧЗ PDF</h3><label>Общий PDF с ЧЗ<input id="fboChzPdf" type="file" accept="application/pdf,.pdf"></label><div class="button-row"><button id="fboUploadChz" class="secondary" type="button">Разделить PDF</button><button id="fboPrintChz" class="primary" type="button">Распечатать все ЧЗ</button></div><div id="fboChzGroups"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><div><span class="kicker">РАСКЛАДКА ПО КОРОБАМ</span><h2>Что лежит в каком коробе</h2><p>Короба FBO — упаковочная раскладка для клиента. Она не создаёт и не списывает складские остатки.</p></div></div>
+          <div class="fbo-work-grid">
+            <div class="compact-form">
+              <label>Создать / открыть короб<input id="fboBoxName" autocomplete="off" placeholder="Скан или название короба"></label><button id="fboCreateBox" class="secondary" type="button">Создать / открыть</button>
+              <label>Текущий короб<select id="fboBoxSelect"><option value="">Выберите короб</option></select></label>
+              <label>ШК товара<input id="fboScan" autocomplete="off" placeholder="Сканируйте ШК товара"></label>
+              <label>Количество<input id="fboQty" type="number" min="1" step="1" value="1"></label>
+              <button id="fboAddItem" class="primary" type="button">Добавить в короб</button>
+              <div id="fboBoxes" class="fbo-box-cards"></div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Время</th><th>Короб</th><th>Товар</th><th>ШК</th><th>Кол-во</th><th>Сотрудник</th><th></th></tr></thead><tbody id="fboItems"></tbody></table></div>
+          </div>
+          <div id="fboMsg" class="msg"></div>
+        </section>
+      </section>
+
+
+      <section id="page-finance" class="page fc-finance-ui">
+        <section class="panel">
+          <div class="fc-finance-head">
+            <div><span class="kicker">ФИНАНСЫ И АНАЛИТИКА</span><h2>Доход по работе склада</h2>
+              <p class="muted">Клиент: <b data-finance-client>—</b> · Склад: <b data-finance-warehouse>—</b></p></div>
+            <div class="fc-finance-actions"><button id="financeRefresh" class="primary" type="button">Обновить сводку</button>
+              <button type="button" class="secondary" data-page="financehistory">История начислений →</button></div>
+          </div>
+          <div class="fc-finance-dates"><label>С даты<input id="financeDateFrom" type="date" required></label><label>По дату<input id="financeDateTo" type="date" required></label></div>
+          <div class="fc-finance-stats">
+            <div><span>НАЧИСЛЕНО ЗА ПЕРИОД</span><strong id="financeTotal">—</strong><small id="financeRange">—</small></div>
+            <div><span>ХРАНЕНИЕ СЕЙЧАС</span><strong id="financeStoragePlaces">—</strong><small>Коробо-мест · ячейка без короба = 1 место</small></div>
+            <div><span>ХРАНЕНИЕ ЗА ПЕРИОД</span><strong id="financeStorageAmount">—</strong><small>По ежедневным снимкам</small></div>
+          </div>
+          <div id="financeMsg" class="fc-finance-msg" role="status" aria-live="polite"></div>
+        </section>
+        <section class="panel">
+          <span class="kicker">ТАРИФЫ КЛИЕНТА</span><h3>Применить тариф к категориям</h3>
+          <p class="muted">Тариф действует для выбранного клиента на всех его складах. Выберите одну или несколько категорий во всплывающем окне.</p>
+          <form id="financeTariffForm" class="fc-finance-form">
+            <fieldset id="financeTariffFields">
+              <div class="fc-finance-form-grid">
+                <label>Услуга<select id="financeTariffService" name="service_code"><option value="RECEIVING">Приёмка товара</option><option value="PVZ_GOOD">Приёмка ПВЗ</option><option value="PVZ_DEFECT">Брак ПВЗ</option><option value="TRANSIT_RECEIVE">Приёмка транзита</option><option value="FBO">FBO</option><option value="SHIPPING">Отгрузка / списание</option><option value="STORAGE_BOX_DAY">Хранение · коробо-день</option></select></label>
+                <div class="fc-finance-category-field"><span>Категории</span>
+                  <button id="financeChooseCategories" type="button" class="secondary" aria-haspopup="dialog">Выбрать категории</button>
+                  <small id="financeSelectionLabel">Категории не выбраны</small></div>
+                <label>Тариф, ₽<input id="financeTariffRate" name="rate" type="number" min="0" step="0.01" required placeholder="Например: 15"></label>
+                <label>Единица<input id="financeTariffUnit" name="unit" maxlength="32" value="шт" required></label>
+              </div>
+              <label>Комментарий<input name="note" maxlength="500" placeholder="Необязательно"></label>
+              <p id="financeStorageTariffHint" class="fc-finance-note" hidden>Хранение: общий тариф за одно коробо-место в сутки. Разделение стоимости хранения по товарным категориям в текущем расчёте не используется.</p>
+              <div class="fc-finance-actions"><button id="financeApplyTariff" class="primary" type="submit">Применить тариф</button>
+                <button id="financeSyncCategories" class="secondary" type="button">Обновить категории из карточек WB</button></div>
+            </fieldset>
+          </form>
+          <p class="fc-finance-note">Отдельный тариф категории имеет приоритет над общим. Отчёт и история рассчитываются по действующим тарифам — это не зафиксированные счета.</p>
+          <div id="financeTariffMsg" class="fc-finance-msg" role="status" aria-live="polite"></div>
+        </section>
+        <section class="panel">
+          <div class="fc-finance-head"><div><span class="kicker">ТАРИФНАЯ СЕТКА</span><h3>Действующие тарифы</h3></div>
+            <label>Поиск тарифа<input id="financeTariffSearch" type="search" placeholder="Услуга / категория"></label></div>
+          <div class="table-wrap"><table><thead><tr><th>Услуга</th><th>Категория</th><th>Тариф</th><th>Ед.</th><th>Комментарий</th><th></th></tr></thead><tbody id="financeTariffs"></tbody></table></div>
+          <div class="fc-finance-pagination"><span id="financeTariffRange"></span><div class="fc-finance-actions"><button id="financeTariffPrev" class="secondary" type="button">←</button><button id="financeTariffNext" class="secondary" type="button">→</button></div></div>
+        </section>
+        <section class="panel">
+          <span class="kicker">СВОДКА</span><h3>Начисления по услугам и категориям</h3>
+          <div class="table-wrap"><table><thead><tr><th>Услуга</th><th>Категория</th><th>Объём</th><th>Доход</th></tr></thead><tbody id="financeSummary"></tbody></table></div>
+        </section>
+      </section>
+
+      <section id="page-financehistory" class="page fc-finance-ui">
+        <section class="panel">
+          <div class="fc-finance-head"><div><span class="kicker">ИСТОРИЯ НАЧИСЛЕНИЙ</span><h2>Приёмки, работы и хранение</h2>
+            <p class="muted">Клиент: <b data-finance-client>—</b> · Склад: <b data-finance-warehouse>—</b></p></div>
+            <div class="fc-finance-actions"><button id="financeHistoryRefresh" type="button" class="primary">Показать историю</button>
+              <button type="button" class="secondary" data-page="finance">← Финансы и аналитика</button></div></div>
+          <div class="fc-finance-history-filters">
+            <label>С даты<input id="financeHistoryFrom" type="date" required></label>
+            <label>По дату<input id="financeHistoryTo" type="date" required></label>
+            <label>Услуга<select id="financeHistoryService"><option value="">Все услуги</option><option value="RECEIVING">Приёмка товара</option><option value="PVZ_GOOD">Приёмка ПВЗ</option><option value="PVZ_DEFECT">Брак ПВЗ</option><option value="TRANSIT_RECEIVE">Приёмка транзита</option><option value="FBO">FBO</option><option value="SHIPPING">Отгрузка / списание</option><option value="STORAGE_BOX_DAY">Хранение · коробо-день</option></select></label>
+            <label>Категория<select id="financeHistoryCategory"><option value="">Все категории</option></select></label>
+            <label class="fc-finance-history-search">Поиск<input id="financeHistorySearch" type="search" placeholder="Приёмка / сотрудник / артикул / ШК"></label>
+          </div>
+          <div class="fc-finance-pagination"><span id="financeHistoryCount">Данные не загружены</span><strong id="financeHistoryTotal">—</strong></div>
+          <p class="fc-finance-note">Одна строка — позиция операции или день хранения. Суммы рассчитываются по действующим тарифам. История складских приёмок остаётся в прежнем разделе «История приёмки».</p>
+          <div id="financeHistoryMsg" class="fc-finance-msg" role="status" aria-live="polite"></div>
+        </section>
+        <section class="panel">
+          <div class="table-wrap"><table><thead><tr><th>Дата</th><th>Услуга</th><th>Приёмка / работа</th><th>Категория</th><th>Количество</th><th>Тариф, ₽</th><th>Сумма, ₽</th></tr></thead><tbody id="financeHistoryRows"></tbody></table></div>
+          <div class="fc-finance-pagination"><span id="financeHistoryRange"></span><div class="fc-finance-actions"><button id="financeHistoryPrev" type="button" class="secondary">← Назад</button><button id="financeHistoryNext" type="button" class="secondary">Далее →</button></div></div>
+        </section>
+      </section>
+
+      <section id="page-printsettings" class="page">
+        <div class="panel">
+          <div class="panel-head"><div><span class="kicker">ПЕЧАТЬ</span><h2>Калибровка этикеток</h2></div><button id="resetPrintSettingsBtn" class="secondary" type="button">По умолчанию 58×40</button></div>
+          <p class="muted">Основной режим — Print Agent 1.1.8 STABLE на ядре 1.1.7. Этикетка строится сразу в 203 DPI (464×320 точек для 58×40 мм) и отправляется напрямую в Xprinter. PDF, поля Windows, масштаб браузера и автоповорот драйвера в этой цепочке не участвуют.</p>
+          <div class="panel compact-form" id="printDeliverySettings">
+            <span class="kicker">СПОСОБ ПЕЧАТИ</span><h3>Print Agent / браузер</h3>
+            <div class="form-row">
+              <label>Режим печати<select id="wbPrintMode"><option value="agent">Print Agent — автопечать 58×40</option><option value="browser">Через браузер — резерв</option></select></label>
+              <label>Рабочее место Print Agent<input id="wbPrintStation" value="PACK-01" placeholder="PACK-01" autocomplete="off" /></label>
+            </div>
+            <small class="muted">Этот выбор используется для печати WB и других складских этикеток, которые обращаются к общим настройкам печати. Для стабильной работы используйте Print Agent; браузер оставлен как резерв.</small>
+          </div>
+          <div class="master-grid">
+            <div class="panel compact-form">
+              <span class="kicker">ТОВАРНАЯ ЭТИКЕТКА</span><h3>ШК товара</h3>
+              <div class="form-row"><label>Ширина бумаги, мм · фиксировано<input id="productLabelWidth" type="number" value="58" readonly></label><label>Высота бумаги, мм · фиксировано<input id="productLabelHeight" type="number" value="40" readonly></label></div>
+              <label>Поворот (только резервная печать через браузер)<select id="productLabelRotate"><option value="0">Без поворота</option><option value="90">90°</option><option value="270">270°</option></select></label>
+              <div class="form-row"><label>Масштаб, %<input id="productLabelScale" type="number" min="80" max="108" step="1"></label><label>Сдвиг X, мм<input id="productLabelOffsetX" type="number" min="-5" max="5" step="0.2"></label><label>Сдвиг Y, мм<input id="productLabelOffsetY" type="number" min="-5" max="5" step="0.2"></label></div>
+              <small class="muted">Товарная этикетка всегда формируется строго 58×40 мм. Размер рабочего места и настройки бумаги Windows больше не могут изменить её на PACK-станции. Масштаб и сдвиги остаются только для тонкой калибровки содержимого внутри одной этикетки.</small>
+              <button id="testProductLabelBtn" class="secondary" type="button">Тест товарной 58×40</button>
+            </div>
+            <div class="panel compact-form">
+              <span class="kicker">ЭТИКЕТКА WB</span><h3>Стикер заказа</h3>
+              <div class="form-row"><label>Ширина бумаги, мм<input id="wbLabelWidth" type="number" min="25" max="120" step="1"></label><label>Высота бумаги, мм<input id="wbLabelHeight" type="number" min="25" max="120" step="1"></label></div>
+              <label>Поворот<select id="wbLabelRotate"><option value="-1">Автоматически</option><option value="0">Без поворота</option><option value="90">90°</option><option value="270">270°</option></select></label>
+              <div class="form-row"><label>Масштаб, %<input id="wbLabelScale" type="number" min="85" max="108" step="1"></label><label>Сдвиг X, мм<input id="wbLabelOffsetX" type="number" min="-5" max="5" step="0.2"></label><label>Сдвиг Y, мм<input id="wbLabelOffsetY" type="number" min="-5" max="5" step="0.2"></label></div>
+              <small class="muted">WB-стикер приводится к точным 464×320 точкам с жёсткими чёрно-белыми границами штрихкодов. Для реальной печати используйте Print Agent.</small>
+              <button id="testWbLabelBtn" class="secondary" type="button">Тест рамки WB 58×40</button>
+            </div>
+          </div>
+          <div class="button-row"><button id="savePrintSettingsBtn" class="primary" type="button">Сохранить настройки</button></div>
+          <div class="result-card mt18"><b>Как калибровать</b><span>Сначала нажмите «По умолчанию 58×40» и тестируйте через Print Agent. В норме ничего подгонять не нужно. X/Y оставлены только для механического смещения конкретного принтера. Браузерную печать используйте только как резерв — браузер может уменьшать этикетку.</span></div>
+        </div>
+      </section>
+
+      <section id="page-masterdata" class="page">
+        <div class="master-grid">
+          <form id="clientForm" class="panel compact-form"><span class="kicker">КЛИЕНТ</span><h3>Добавить клиента</h3><label>Название<input id="clientName" required /></label><button class="primary">Добавить</button><button type="button" id="fc25ClientsOpen" class="secondary">Список клиентов: изменить / удалить</button></form>
+          <form id="warehouseForm" class="panel compact-form"><span class="kicker">СКЛАД</span><h3>Добавить склад</h3><label>Код<input id="warehouseCode" required /></label><label>Название<input id="warehouseName" required /></label><button class="primary">Добавить</button></form>
+          <form id="locationForm" class="panel compact-form"><span class="kicker">ЯЧЕЙКА</span><h3>Добавить ячейку</h3><label>Код<input id="locationCode" required /></label><label>Штрихкод<input id="locationBarcode" required /></label><button class="primary">Добавить</button></form>
+          <form id="skuForm" class="panel compact-form"><span class="kicker">ТОВАР</span><h3>Добавить SKU</h3><div class="form-row"><label>Код SKU<input id="skuCode" required /></label><label>Артикул<input id="skuArticle" /></label></div><label>Название<input id="skuName" required /></label><div class="form-row"><label>Размер<input id="skuSize" /></label><label>Штрихкод<input id="skuBarcode" /></label></div><button class="primary">Добавить</button></form>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="inventoryProductModal" class="modal hidden"><div class="modal-backdrop" data-close-inventory-modal></div><div class="modal-card inventory-modal-card"><button class="modal-close" data-close-inventory-modal>×</button><div id="inventoryProductModalBody"></div></div></div>
+  <div id="wbOrderModal" class="modal hidden"><div class="modal-backdrop" data-close-order-modal></div><div class="modal-card"><button class="modal-close" data-close-order-modal>×</button><div id="wbOrderModalBody"></div></div></div>
+  <div id="wbProductModal" class="modal hidden"><div class="modal-backdrop" data-close-product-modal></div><div class="modal-card"><button class="modal-close" data-close-product-modal>×</button><div id="wbProductModalBody"></div></div></div>
+  <div id="toast" class="toast"></div>
+  <dialog id="financeCategoryDialog" class="fc-finance-dialog" aria-labelledby="financeCategoryTitle">
+    <div class="fc-finance-dialog-head"><div><span class="kicker">ВЫБОР КАТЕГОРИЙ</span><h2 id="financeCategoryTitle">К каким категориям применить тариф?</h2><p>Клиент: <b id="financeDialogClient">—</b></p></div><button id="financeCategoryClose" class="secondary" type="button" aria-label="Закрыть выбор категорий">✕</button></div>
+    <label class="fc-finance-dialog-search">Поиск категории, артикула или ШК<input id="financeCategorySearch" type="search" autocomplete="off" placeholder="Например: Куртки"></label>
+    <label class="fc-finance-category-option fc-finance-default"><input id="financeCategoryDefault" type="checkbox"><span><b>Общий тариф / по умолчанию</b><small>Для категорий без отдельного тарифа. Не заменяет их собственные ставки.</small></span></label>
+    <div class="fc-finance-pagination"><span id="financeCategoryCount">Загрузка…</span><div class="fc-finance-actions"><button id="financeCategorySelectAll" type="button" class="secondary">Выбрать найденные</button><button id="financeCategoryClear" type="button" class="secondary">Снять выбор</button></div></div>
+    <div id="financeCategoryList" class="fc-finance-category-list" aria-label="Категории"></div>
+    <div id="financeCategoryMsg" class="fc-finance-msg" role="status"></div>
+    <div class="fc-finance-dialog-footer"><strong id="financeCategorySelectedCount">Выбрано: 0</strong><div class="fc-finance-actions"><button id="financeCategoryCancel" type="button" class="secondary">Отмена</button><button id="financeCategoryConfirm" type="button" class="primary">Выбрать категории</button></div></div>
+  </dialog>
+
+  <link rel="stylesheet" href="/static/r145f25.css?v=r145f25"/>
+  <script src="/static/r145f25-core.js?v=r145f44"></script>
+  <script src="/static/r145f24-ui.js?v=r145f24"></script>
+  <link rel="stylesheet" href="/static/r145f26.css?v=r145f26"/>
+  <script src="/static/r145f26-draft-store.js?v=r145f26"></script>
+  <script src="/static/r145f26-cards.js?v=r145f26"></script>
+  <script src="/static/r145f32-queue.js?v=r145f32"></script>
+  <script src="/static/app-r145f39.js?v=r145f44"></script>
+  <script src="/static/r145f42-fast.js?v=r145f52"></script>
+  <script src="/static/r145f25-ui.js?v=r145f25"></script>
+  <script src="/static/r145f22-ui.js?v=r145f22"></script>
+  <script src="/static/finance.js?v=r145f20"></script>
+  <script src="/static/wb-supply-move.js?v=r145f20"></script>
+  <script src="/static/fbo.js?v=r145f9"></script>
+  <script src="/static/transit.js?v=r145f18"></script>
+  <script src="/static/defect-storage.js?v=r145f9"></script>
+  <script src="/static/defect-bulk.js?v=r145f20"></script>
+  <script src="/static/storage.js?v=r145f16"></script>
+  <script src="/static/r145f42-receiving-stable.js?v=r145f52" data-marker="FC_R145F42_RECEIVING_NONBLOCK_MAIN_DEFAULT"></script>
+  <script src="/static/r145f39-controls.js?v=r145f39"></script>
+<script src="/static/r145f54-browser-receiving.js?v=r145f54"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: fulfillcore
+      POSTGRES_USER: fulfillcore
+      POSTGRES_PASSWORD: fulfillcore
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - fulfillcore_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fulfillcore -d fulfillcore"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      APP_NAME: FulfillCore MVP
+      DATABASE_URL: postgresql+psycopg://fulfillcore:fulfillcore@db:5432/fulfillcore
+      APP_SECRET_KEY: ${APP_SECRET_KEY:-fulfillcore-local-2026-marketplace-secret}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-12}
+      SECURE_COOKIE: "false"
+      PRINT_AGENT_TOKEN: ${PRINT_AGENT_TOKEN:-local-print-agent-token}
+      FC_THREADPOOL_TOKENS: ${FC_THREADPOOL_TOKENS:-24}
+      FC_DB_POOL_SIZE: ${FC_DB_POOL_SIZE:-20}
+      FC_DB_MAX_OVERFLOW: ${FC_DB_MAX_OVERFLOW:-10}
+      # Prevent glibc from creating one malloc arena per busy worker thread. This is a
+      # common source of high retained RSS in long-running threaded Python services.
+      MALLOC_ARENA_MAX: ${MALLOC_ARENA_MAX:-2}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  fulfillcore_pg:

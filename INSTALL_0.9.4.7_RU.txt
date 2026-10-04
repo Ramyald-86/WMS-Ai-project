@@ -1,0 +1,11 @@
+1. Скопируйте ZIP на сервер в /root/.
+2. Распакуйте содержимое ZIP в /opt/fulfillcore.
+3. Выполните:
+   cd /opt/fulfillcore
+   chmod +x tools/deploy_live_0_9_4_7.sh
+   bash tools/deploy_live_0_9_4_7.sh
+4. Дождитесь строки:
+   OK: FulfillCore 0.9.4.7 DB_TX_AUTO_LABEL_STABILITY is running
+5. В браузере нажмите Ctrl+F5.
+
+Скрипт сначала копирует реальные файлы из работающего контейнера и делает backup. При любой ошибке до завершения выполняется rollback.

@@ -1,0 +1,34 @@
+FULFILLCORE 0.9.4.8 REV2 — ОТЧЁТ ПРЕДВАРИТЕЛЬНОЙ ПРОВЕРКИ
+=========================================================
+Дата: 01.09.2026
+
+ПРОЙДЕНО В СРЕДЕ СБОРКИ
+- patch 0.9.4.7 -> 0.9.4.8 stage 1: PASS
+- REV2 marketplace patch: PASS
+- platform stability patch на fixture: PASS
+- повторное применение всех patchers (идемпотентность): PASS
+- Python ast/py_compile изменённых Python-файлов: PASS
+- `node --check app/static/app.js`: PASS
+- `smoke_check_0_9_4_8.py`: PASS
+
+Smoke/acceptance проверяет, в частности:
+- no_picking_list реально даёт HTTP 409;
+- already_consumed идемпотентен;
+- PACKED расположен после successful Print Agent ACK и после strict write-off;
+- queue_print_job создаётся раньше отмены старого QUEUED job;
+- stale pending-marker cleanup присутствует;
+- passive WB meta не отвязывает CHZ активного strict gate;
+- DB pool задаётся через create_engine;
+- приватная мутация QueuePool отсутствует;
+- commercial auth закрывает DB session до call_next;
+- print queue использует id-only LIMIT 1;
+- print result сверяет PACK-станцию;
+- distributed_lock ограничен 5 сек;
+- frontend разрешает следующий скан только после printed + packed.
+
+ЧТО НЕЛЬЗЯ ЧЕСТНО ПРОВЕРИТЬ В СРЕДЕ СБОРКИ
+- реальный ответ API Wildberries конкретного кабинета;
+- физический USB Xprinter и драйвер конкретного рабочего места;
+- реальная нагрузка 4 упаковочных столов x 50 боевых заказов, так как такой тест меняет реальные WB-заказы и остатки.
+
+Поэтому deploy-скрипт собирает диагностику с живого сервера до изменения, проверяет pool/idle transactions после запуска и требует первый физический тест на одном реальном заказе. Полноценную 4x50 проверку можно выполнять только на тестовых заказах/кабинете, а не автоматически на боевом складе.

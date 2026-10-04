@@ -1,0 +1,20 @@
+FulfillCore 0.9.4.4 PACKING_TRANSACTION_FIX
+
+Назначение: аварийное исправление зависаний упаковки и блокировок PostgreSQL.
+
+Исправляет:
+- WB HTTP больше не выполняется внутри транзакции упаковки.
+- CHZ сохраняется и заказ PACKED фиксируется локально сразу; set_sgtin уходит в DB-free фоновый поток.
+- WB sync закрывает транзакции перед new_orders/order_statuses/meta/stickers.
+- metadata sweep больше не запускает старый DB-bound retry CHZ; повторная отправка идет DB-free.
+- отсутствующий Stock Core v2 резерв восстанавливается только из реально свободной единицы точного SKU.
+- FIFO 0.9.4.3 и Database Stability 0.9.4.2 сохраняются.
+
+Установка:
+1) Загрузить ZIP в /root.
+2) Распаковать в /opt/fulfillcore.
+3) chmod +x tools/deploy_live_0_9_4_4.sh
+4) bash tools/deploy_live_0_9_4_4.sh
+
+Скрипт делает backup, работает с фактической LIVE-копией контейнера, проверяет Python/JS,
+сверяет HOST и CONTAINER SHA256, перезапускает API и ждет /health version 0.9.4.4.

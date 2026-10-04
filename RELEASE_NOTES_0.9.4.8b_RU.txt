@@ -1,0 +1,19 @@
+FulfillCore 0.9.4.8b FIFO PACKING EMERGENCY
+
+Исправленная регрессия 0.9.4.8 REV2:
+строгий gate ошибочно сделал last_picking_list_id/резерв обязательным условием еще ДО ЧЗ.
+Из-за этого физически найденный товар нельзя было упаковать, если конкретный заказ не владел резервом.
+
+Новая логика:
+SCAN SKU -> выбрать старейший NEW/PICKING заказ -> best-effort перенести/создать резерв -> SCAN CHZ -> WB -> LABEL -> PRINT ACK -> PACKED -> NEXT.
+
+Не менялось:
+- формат/алгоритм ЧЗ;
+- strict print gate;
+- Print Agent 1.1.7;
+- app.js;
+- приемка;
+- Ozon;
+- поставки;
+- ручные остатки;
+- Caddy/DB services.

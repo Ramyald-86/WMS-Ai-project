@@ -1,0 +1,1 @@
+Fix /health runtime version and HTTP verification.

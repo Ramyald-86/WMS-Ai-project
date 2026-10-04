@@ -1,0 +1,28 @@
+FulfillCore 0.9.4 — установка поверх текущей версии
+
+ВАЖНО: deploy-скрипт не меняет .env, ADMIN_PASSWORD_HASH, PRINT_AGENT_TOKEN, базу данных и Docker Compose.
+Он обновляет только файлы 0.9.4 и перед этим делает backup внутри работающего контейнера.
+
+1. Распакуйте архив на сервер в /opt/fulfillcore с заменой файлов app/ и tools/.
+2. Выполните:
+
+cd /opt/fulfillcore
+python3 tools/smoke_check_0_9_4.py
+bash tools/deploy_live_0_9_4.sh
+
+Скрипт сам выполняет:
+- py_compile до установки;
+- node --check app.js до установки;
+- backup текущих live-файлов;
+- копирование в работающий контейнер;
+- SHA256 HOST == CONTAINER для каждого заменённого файла;
+- py_compile внутри контейнера;
+- restart API;
+- health-check, который обязан вернуть 0.9.4;
+- автоматический rollback при любой ошибке.
+
+После сообщения OK: FulfillCore 0.9.4 is running:
+- в браузере один раз нажмите Ctrl+Shift+R;
+- проверьте Остатки, одну карточку заказа и одну тестовую печать.
+
+Если Print Agent выдаёт 401 Unauthorized, НЕ меняйте серверный токен. Нужно обновить токен в настройках установленных Print Agent на значение, которое сейчас выдаёт FulfillCore для Print Agent/станции. Сам deploy 0.9.4 токены не изменяет.

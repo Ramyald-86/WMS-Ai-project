@@ -1,0 +1,94 @@
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#18181b;background:#f5f5f4}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f5f5f4}.topbar{position:sticky;top:0;z-index:5;height:58px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;background:#18181b;color:white}.topbar b{font-size:18px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:8px}.online{background:#22c55e}.offline{background:#ef4444}main{max-width:560px;margin:0 auto;padding:14px 14px 40px}.screen{display:none}.screen.active{display:block}.hero{padding:20px 4px 16px}.hero.compact{padding-top:8px}.hero h1{font-size:31px;line-height:1.05;margin:5px 0 8px}.hero p{margin:0;color:#71717a}.eyebrow{font-size:11px;letter-spacing:.13em;font-weight:800;color:#71717a}label{display:block;font-size:13px;font-weight:700;margin:12px 0;color:#3f3f46}input,select{width:100%;min-height:54px;margin-top:6px;padding:0 14px;border:1px solid #d4d4d8;border-radius:14px;background:white;font-size:18px;color:#18181b;outline:none}input:focus,select:focus{border-color:#6d28d9;box-shadow:0 0 0 3px rgba(109,40,217,.12)}button{border:0;border-radius:14px;padding:12px 16px;font-size:16px;font-weight:800;cursor:pointer}.big{width:100%;min-height:58px;margin-top:10px}.primary{background:#5b21b6;color:#fff}.secondary{background:#e7e5e4;color:#292524}.ghost{background:transparent;color:inherit}.small{padding:8px 10px;font-size:13px}.danger{background:#b91c1c;color:#fff}.danger-text{color:#991b1b;width:100%;margin-top:18px}.msg{min-height:22px;margin:10px 2px;font-size:14px;font-weight:700}.msg.error{color:#b91c1c}.msg.ok{color:#166534}.progress-wrap{padding:10px 2px 14px}.progress-head{display:flex;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:7px}.progress{height:10px;border-radius:999px;background:#e7e5e4;overflow:hidden}.progress div{height:100%;background:#5b21b6;width:0;transition:width .15s}.task-card{background:white;border:1px solid #e7e5e4;border-radius:22px;padding:20px;box-shadow:0 8px 25px rgba(0,0,0,.04)}.location{font-size:44px;line-height:1;font-weight:900;margin:8px 0 4px;letter-spacing:-.03em}.container{font-size:16px;font-weight:800;color:#6d28d9;min-height:22px}.product-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.product-grid>div{background:#f5f5f4;border-radius:14px;padding:12px}.product-grid span{display:block;font-size:11px;color:#71717a;font-weight:700;text-transform:uppercase}.product-grid b{display:block;font-size:19px;margin-top:4px}.product-name{font-size:15px;line-height:1.3;margin:14px 2px;color:#52525b}.need-line{font-size:21px;font-weight:900;margin:16px 2px 10px}.scan-hint{border-radius:14px;padding:14px;text-align:center;background:#ede9fe;color:#4c1d95;font-weight:900}.scan-hint.ready{background:#dcfce7;color:#166534}.scan-input{opacity:.01;height:1px;min-height:1px;padding:0;border:0;margin:0;position:absolute}.missing-link{display:block;margin:18px auto 0;background:transparent;color:#a1a1aa;font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:8px}.hidden{display:none!important}.modal{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.52);display:flex;align-items:flex-end;justify-content:center;padding:12px}.modal-card{width:min(560px,100%);background:white;border-radius:24px;padding:22px}.modal-card h2{margin:0 0 10px;font-size:24px}.modal-card p{font-size:17px;line-height:1.4;color:#3f3f46}.modal-actions{display:grid;gap:8px}.step{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:start;background:white;border:1px solid #e7e5e4;border-radius:18px;padding:12px;margin:10px 0}.step>span{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ede9fe;color:#5b21b6;font-weight:900}.step b{font-size:14px}.step input{margin-top:5px} @media(max-width:380px){.location{font-size:36px}.hero h1{font-size:27px}}
+
+/* FC_K9R25_TSD_DYNAMIC_BATCH_WEDGE_CAPTURE */
+/* FC_K9R24_TSD_SCANNER_FEEDBACK_RESULTS */
+.cell-summary{margin:14px 0 10px;padding:12px 14px;border-radius:16px;background:#f4f4f5;border:1px solid #e4e4e7}
+.cell-summary>div:first-child{display:grid;gap:2px}.cell-summary span{font-size:10px;letter-spacing:.11em;font-weight:900;color:#71717a}
+.cell-summary b{font-size:17px;line-height:1.25;color:#18181b}.cell-summary small{font-size:12px;color:#71717a}
+.cell-list-toggle{margin-top:8px;padding:6px 0;background:transparent;color:#5b21b6;font-size:12px;text-decoration:underline;text-underline-offset:2px}
+.cell-items{margin-top:8px;border-top:1px solid #ddd6fe;padding-top:8px;display:grid;gap:7px}
+.cell-item{display:flex;justify-content:space-between;gap:10px;font-size:12px;line-height:1.25}
+.cell-item b{font-size:12px}.cell-item em{font-style:normal;color:#71717a}
+.scanner-state{font-size:11px;color:#71717a;text-align:center;margin:7px 0 0;min-height:15px}
+.scan-feedback{position:fixed;z-index:50;left:12px;right:12px;top:68px;max-width:536px;margin:auto;padding:16px;border-radius:16px;text-align:center;font-weight:900;font-size:18px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.scan-feedback.ok{display:block!important;background:#16a34a;color:#fff}.scan-feedback.error{display:block!important;background:#b91c1c;color:#fff}
+body.scan-ok .task-card{box-shadow:0 0 0 4px rgba(34,197,94,.35),0 8px 25px rgba(0,0,0,.04)}
+body.scan-bad .task-card{box-shadow:0 0 0 4px rgba(239,68,68,.42),0 8px 25px rgba(0,0,0,.04)}
+.scan-hint.error{background:#fee2e2;color:#991b1b}
+@media(max-width:380px){.scan-feedback{font-size:16px}.cell-summary b{font-size:15px}}
+
+/* r25: a real focused TextBox is required for Urovo ScanWedge keyboard modes 0/1/3. */
+.availability-card{margin:12px 0 4px;padding:13px 14px;border-radius:14px;background:#ede9fe;color:#4c1d95;font-size:14px;font-weight:800;line-height:1.35}.availability-card.empty{background:#fee2e2;color:#991b1b}.field-help{display:block;margin:6px 2px 0;color:#71717a;font-size:11px;line-height:1.35;font-weight:600}.scan-capture-wrap{margin:9px 0 4px;padding:8px 10px;border:1px dashed #c4b5fd;border-radius:12px;background:#fafafa}.scan-capture-wrap>span{display:block;font-size:9px;letter-spacing:.12em;color:#7c3aed;font-weight:900;margin-bottom:4px}.scan-capture-wrap small{display:block;margin-top:4px;color:#71717a;font-size:9px;line-height:1.25}.scan-input{position:static!important;opacity:1!important;width:100%!important;height:38px!important;min-height:38px!important;margin:0!important;padding:0 9px!important;border:1px solid #ddd6fe!important;border-radius:9px!important;background:white!important;font-size:13px!important;color:#27272a!important;caret-color:#6d28d9}.scan-input:focus{border-color:#7c3aed!important;box-shadow:0 0 0 2px rgba(124,58,237,.12)!important}
+
+/* FC_K9R49_TSD_ASSIGNMENT_LATEST */
+.assignment-meta{margin-top:6px;font-size:11px;line-height:1.3;color:#71717a;font-weight:700}
+.availability-card.waiting{background:#fff7ed;color:#9a3412}
+.availability-card.assigned{background:#dcfce7;color:#166534}
+
+/* FC_K9R62_WAREHOUSE_TSD_ADMIN_CLOSE */
+.warehouse-pick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.warehouse-pick-actions button{min-height:52px;font-size:14px}
+.manual-pick{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.skip-pick{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+@media(max-width:390px){.warehouse-pick-actions{grid-template-columns:1fr}}
+
+.warehouse-route-hint{font-size:18px;font-weight:750;line-height:1.5;color:#5142b8;padding:8px 0;overflow-wrap:anywhere}
+
+/* r74: compact controls for Urovo and other 360px terminals. */
+.workplace-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.workplace-actions button{font-size:14px;margin-top:8px;overflow-wrap:anywhere}button:disabled{opacity:.55;cursor:wait}.report-link{display:block;padding:16px;margin-top:12px;background:#dcfce7;border-radius:14px;color:#166534;font-weight:700}body .container,body .location{overflow-wrap:anywhere}.topbar a{color:inherit;text-decoration:none}@media(max-width:350px){.task-card{padding:13px}.workplace-actions{grid-template-columns:1fr}}
+/* r75 native mobile receiving/counting */
+.work-place,.work-card{background:#fff;border:1px solid #ddd6fe;border-radius:16px;padding:16px;margin:12px 0;overflow-wrap:anywhere}.work-place>b{font-size:23px;display:block}.work-place small,.work-card small{display:block;color:#666;line-height:1.5}.work-place>span{display:block;margin-top:7px;color:#5b21b6;font-size:13px}.work-scan-bar{position:sticky;top:58px;background:#f5f5f4;border-bottom:2px solid #ddd6fe;padding:3px 0 10px;z-index:3}.work-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.work-buttons>button{flex:1;min-width:74px;min-height:46px}.work-buttons>.danger-text{margin:0;flex-basis:100%}.work-count{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.work-count strong{font-size:24px}.work-count span{margin-left:auto;font-size:14px}.work-short{color:#b91c1c}.work-extra{color:#166534}.work-unchecked{border-color:#eab308}.work-note{font-size:13px;color:#666;line-height:1.5}.work-check{display:flex;gap:10px;align-items:center}.work-check input{width:24px;min-height:24px;flex:none;margin:0}.work-total{font-size:17px;font-weight:700}#work details{padding:12px;border:1px solid #ddd6fe;border-radius:14px}#work summary{font-weight:700;cursor:pointer}#work button:disabled{opacity:.5;cursor:wait}#workMsg{white-space:pre-line}.work-card p{margin:10px 0}
+/* r90: rescan the active box/place and keep a dedicated TSD audit history. */
+.work-change-place{margin:12px 0;padding:14px;border:2px solid #c9c5ff;border-radius:16px;background:#f8f7ff}.work-change-place label{display:grid;gap:7px}.work-change-place small{display:block;margin-top:8px;color:#667085;line-height:1.4}.work-history-list{display:grid;gap:12px;margin-top:16px}.work-history-card{padding:14px;border:1px solid #dbe2ed;border-radius:16px;background:#fff}.work-history-card>div{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.work-history-card small{color:#667085}.work-history-card p{margin:8px 0 0;line-height:1.45}.work-history-card b{overflow-wrap:anywhere}
+
+/* r109: full-screen draggable product sheet for receiving and stocktake on TSD. */
+#work.work-session-active .hero.compact{display:none}
+#work.work-session-active{min-height:calc(100dvh - 58px)}
+#work.work-session-active #workActive{min-height:calc(100dvh - 86px)}
+#work.work-session-active .work-control-panel{max-height:calc(100dvh - 86px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 0 54vh;scrollbar-width:thin}
+#work.work-session-active .work-scan-bar{position:static;top:auto;z-index:auto;border-bottom:0;padding-bottom:8px}
+#work.work-session-active .work-place{margin-top:0;padding:12px 14px}
+.work-items-panel{position:fixed;z-index:4;left:50%;width:min(560px,100vw);transform:translateX(-50%);top:58px;bottom:0;display:flex;flex-direction:column;background:#f5f5f4;border:1px solid #ddd6fe;border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -12px 34px rgba(24,24,27,.18);overflow:hidden;transition:top .2s ease;will-change:top}
+.work-items-panel.work-items-dragging{transition:none;user-select:none}
+.work-items-handle{position:relative;display:grid;grid-template-columns:34px 1fr 30px;align-items:center;gap:9px;width:100%;min-height:70px;padding:14px 12px 10px;border-radius:0;background:#fff;color:#18181b;text-align:left;border-bottom:1px solid #e7e5e4;touch-action:none;cursor:ns-resize}
+.work-items-grip{display:block;width:30px;height:5px;border-radius:999px;background:#a1a1aa;justify-self:center}
+.work-items-title{display:block;min-width:0}.work-items-title b{display:block;font-size:16px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.work-items-title small{display:block;margin-top:3px;color:#71717a;font-size:11px;line-height:1.25;font-weight:700}
+.work-items-chevron{font-size:24px;line-height:1;text-align:center;color:#6d28d9;font-weight:900}
+.work-items-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:6px 14px max(26px,env(safe-area-inset-bottom));scrollbar-width:thin;background:#f5f5f4}
+.work-items-scroll .work-card{margin:8px 0;padding:12px 14px}.work-items-scroll .work-total{position:sticky;top:0;z-index:1;margin:0 -2px 8px;padding:10px 4px 8px;background:linear-gradient(#f5f5f4 78%,rgba(245,245,244,0));font-size:15px}
+.work-items-scroll #workFinishActions{padding-bottom:4px}
+.work-items-panel.work-items-half{box-shadow:0 -8px 26px rgba(24,24,27,.16)}
+@media(max-width:380px){.work-items-handle{min-height:64px;padding:11px 10px 8px}.work-items-title b{font-size:15px}.work-items-title small{font-size:10px}.work-items-scroll{padding-left:10px;padding-right:10px}}
+@supports not (height:100dvh){#work.work-session-active{min-height:calc(100vh - 58px)}#work.work-session-active #workActive{min-height:calc(100vh - 86px)}#work.work-session-active .work-control-panel{max-height:calc(100vh - 86px)}}
+.work-items-title small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.work-items-title small.work-items-hint-ok{color:#166534}.work-items-title small.work-items-hint-error{color:#b91c1c}
+
+/* FC_R110_TRANSIT_WAREHOUSE */
+.transit-home-btn{border-color:#b9a6ff!important;background:#f5f1ff!important}
+.transit-tsd-batches,.transit-tsd-boxes,.transit-tsd-items{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.transit-tsd-batch,.transit-tsd-box{width:100%;text-align:left;border:1px solid #d9dde7;background:#fff;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.transit-tsd-batch.active,.transit-tsd-box.active{border-color:#7059f5;background:#f4f1ff;box-shadow:0 0 0 2px rgba(112,89,245,.08)}
+.transit-tsd-batch small,.transit-tsd-box small{color:#6b7280}
+.transit-tsd-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start}.transit-tsd-head h2{margin:2px 0 4px}
+.transit-tsd-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.transit-tsd-rule{background:#fff5cf;border:1px solid #ead388;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.4}
+.transit-tsd-current{margin-top:12px;border-top:2px solid #ececf2;padding-top:12px}.transit-tsd-current-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.transit-tsd-current-head h2{font-size:24px;margin:3px 0}
+.transit-tsd-scan{position:sticky;top:56px;z-index:4;background:#fff;padding:10px 0 12px;border-bottom:1px solid #ececf2;margin-bottom:10px}.transit-tsd-scan label{margin:0}.transit-tsd-scan input{font-size:19px;font-weight:700}.transit-tsd-scan button{width:100%;margin-top:8px}.transit-tsd-scan small{display:block;color:#6b7280;margin-top:7px;line-height:1.35}
+.transit-tsd-manual{border:1px solid #dfe3eb;border-radius:12px;padding:10px;margin:8px 0}.transit-tsd-manual summary{font-weight:700;cursor:pointer}
+.transit-tsd-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid #e2e5eb;border-radius:12px;background:#fff;padding:11px}.transit-tsd-item b,.transit-tsd-item small{display:block}.transit-tsd-item small{margin-top:4px;color:#6b7280}.transit-tsd-item strong{font-size:20px;white-space:nowrap}
+@media(max-width:390px){.transit-tsd-actions{grid-template-columns:1fr}.transit-tsd-current-head{align-items:flex-start;flex-direction:column}.transit-tsd-current-head button{width:100%}}
+
+/* r111: one receiving batch -> many boxes, with batch-level finalization. */
+.work-receipt-group{margin:12px 0;padding:12px!important;border:1px solid #cfc8ff!important;border-radius:16px!important;background:#fff}
+.work-receipt-group>summary{list-style:none;cursor:pointer}.work-receipt-group>summary::-webkit-details-marker{display:none}
+.work-receipt-group>summary span{display:flex;flex-direction:column;gap:3px}.work-receipt-group>summary b{font-size:16px}.work-receipt-group>summary small{color:#6b7280;font-size:12px}
+.work-receipt-boxes{display:grid;gap:8px;margin-top:10px}.work-receipt-box{margin-top:0!important;min-height:52px!important;text-align:left!important;padding:10px 12px!important}
+.work-receipt-box span{display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%}.work-receipt-box small{color:#6b7280;font-size:12px;white-space:nowrap}
+.work-receipt-post{margin-top:12px!important;font-size:14px!important;line-height:1.25}.work-count-drafts{display:grid;gap:8px;margin-top:14px}.work-count-drafts>.big{margin-top:0}
+@media(max-width:380px){.work-receipt-group{padding:10px!important}.work-receipt-post{font-size:13px!important}.work-receipt-box span{align-items:flex-start;flex-direction:column;gap:2px}}
+.work-history-box{margin-top:8px;padding:9px 10px;border:1px solid #e5e7eb;border-radius:10px;background:#fafafa;line-height:1.4}.work-history-box>div{margin-top:5px;color:#4b5563}
+
+/* r112: TSD recovery controls must stay reachable even if the product sheet is open. */
+.topbar-actions{display:flex;align-items:center;gap:2px}.topbar-actions button{white-space:nowrap}
+.work-recovery-inline{position:sticky;top:0;z-index:3;margin:0 0 10px;padding:12px;border:2px solid #f59e0b;border-radius:14px;background:#fffbeb;color:#78350f;box-shadow:0 5px 16px rgba(120,53,15,.12)}
+.work-recovery-inline b{display:block;font-size:15px}.work-recovery-inline p{margin:5px 0 8px;font-size:12px;line-height:1.35}.work-recovery-inline .work-buttons{margin-top:0}.work-recovery-inline button{min-height:46px}
+@media(max-width:360px){.topbar{padding-left:10px;padding-right:8px}.topbar b{font-size:16px}.topbar-actions .small{padding-left:7px;padding-right:7px;font-size:12px}}

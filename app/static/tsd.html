@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#18181b">
+  <title>FulfillCore TSD</title>
+  <link rel="manifest" href="/static/tsd-manifest.json">
+  <link rel="stylesheet" href="/static/tsd.css?v=r112">
+  <link rel="stylesheet" href="/static/tsd-r145f20-receive.css?v=r145f20">
+</head>
+<body>
+  <header class="topbar">
+    <div><b>FulfillCore TSD</b><span id="netDot" class="dot online"></span></div>
+    <div class="topbar-actions"><button id="workPanicBtn" class="ghost small hidden" type="button">Сброс</button><button id="homeBtn" class="ghost small">Главная</button></div>
+  </header>
+
+  <main>
+    <section id="setup" class="screen active">
+      <div class="hero">
+        <div class="eyebrow">МОБИЛЬНОЕ РАБОЧЕЕ МЕСТО</div>
+        <h1>Работа на складе</h1>
+        <p>Сборку назначает диспетчер в FulfillCore. ТСД всегда открывает последнюю актуальную сборку этого сотрудника.</p>
+      </div>
+      <label>Клиент<select id="clientSelect"></select></label>
+      <label>Склад<select id="warehouseSelect"></select></label>
+      <label>Сотрудник / сборщик<input id="pickerInput" autocomplete="off" placeholder="Имя сотрудника"></label>
+      <label>Задания<select id="assignmentKind"><option value="AUTO">Актуальное назначение</option><option value="WAREHOUSE">Основной склад</option><option value="WB">Заказы WB FBS</option></select></label>
+      <div id="pickingAvailable" class="availability-card">Проверяем назначенную сборку…</div>
+      <button id="startPick" class="primary big">Получить актуальную сборку</button>
+      <button id="openMove" class="secondary big">Перемещение короб → короб</button>
+      <div class="workplace-actions"><button class="secondary big" id="openBoxes">Приёмка коробов</button><button class="secondary big" id="openGoods">Приёмка товара</button><button class="secondary big" id="openCount">Инвентаризация</button><button class="secondary big transit-home-btn" id="openTransit">Транзитный склад</button><button class="secondary big" id="openBoxPicks">Сборка коробов</button><button class="secondary big" id="openStocks">Остатки и короба</button><button class="secondary big" id="openWorkHistory">История ТСД / Excel</button></div>
+      <a class="report-link hidden" id="lastReport">Скачать последний отчёт Excel</a>
+      <p><a href="/tsd/install">Установить / обновить приложение</a> · <span id="mobileVersion">WMS r145f25</span></p>
+      <div id="setupMsg" class="msg"></div>
+    </section>
+
+    <section id="pick" class="screen">
+      <div class="progress-wrap">
+        <div class="progress-head"><b id="pickerName"></b><span id="progressText"></span></div>
+        <div id="assignmentMeta" class="assignment-meta"></div>
+        <div class="progress"><div id="progressBar"></div></div>
+      </div>
+      <div id="taskCard" class="task-card">
+        <div class="eyebrow">ТЕКУЩАЯ ПОЗИЦИЯ</div>
+        <div id="locationCode" class="location">—</div>
+        <div id="containerCode" class="container"></div>
+        <div class="product-grid">
+          <div><span>Артикул</span><b id="article">—</b></div>
+          <div><span>Размер</span><b id="size">—</b></div>
+        </div>
+        <div id="productName" class="product-name"></div>
+        <div id="needLine" class="need-line">Нужно 0 · Собрано 0</div>
+        <div id="cellSummary" class="cell-summary">
+          <div><span>ИЗ ЭТОЙ ЯЧЕЙКИ</span><b id="cellTotalLine">—</b><small id="cellProgressLine"></small></div>
+          <button id="cellListToggle" type="button" class="cell-list-toggle">Показать состав</button>
+          <div id="cellItems" class="cell-items hidden"></div>
+        </div>
+        <div id="scanHint" class="scan-hint">1/3 · Сканируйте QR ячейки</div>
+        <div id="scannerState" class="scanner-state">Сканер ждёт код…</div>
+        <div class="scan-capture-wrap">
+          <span>ВХОД СКАНЕРА</span>
+          <input id="scanInput" class="scan-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="После скана код появится здесь">
+          <small>Если QR пищит, но это поле остаётся пустым — на Urovo включите Keyboard Output / Keyboard Wedge.</small>
+        </div>
+        <button id="manualFocus" class="secondary">Активировать сканер</button>
+        <div id="warehousePickActions" class="warehouse-pick-actions hidden">
+          <button id="manualPickBtn" type="button" class="manual-pick">✓ Подтвердить вручную</button>
+          <button id="skipPickBtn" type="button" class="skip-pick">→ Пропустить позицию</button>
+        </div>
+        <button id="missingBtn" class="missing-link">Нет в коробе</button>
+      </div>
+      <div id="pickMsg" class="msg"></div>
+      <button id="finishPick" class="primary big hidden">Завершить и скачать Excel</button>
+      <button id="cancelPick" class="ghost danger-text">Проверить актуальную сборку</button>
+    </section>
+
+    <section id="move" class="screen">
+      <div class="hero compact"><div class="eyebrow">ПЕРЕМЕЩЕНИЕ</div><h1>Короб → короб</h1></div>
+      <label>Склад товара<select id="moveStockClass"><option value="MAIN">Основной склад</option><option value="FBS">WB FBS</option></select></label>
+      <div class="step"><span>1</span><div><b>Исходный короб</b><input id="moveSource" autocomplete="off" placeholder="Сканируйте короб"></div></div>
+      <div class="step"><span>2</span><div><b>Товар</b><input id="moveProduct" autocomplete="off" placeholder="Сканируйте ШК товара"></div></div>
+      <div class="step"><span>3</span><div><b>Количество</b><input id="moveQty" type="number" min="1" value="1"></div></div>
+      <div class="step"><span>4</span><div><b>Новый короб</b><input id="moveDest" autocomplete="off" placeholder="Сканируйте короб"></div></div>
+      <button id="moveGo" class="primary big">Переместить</button>
+      <div id="moveMsg" class="msg"></div>
+    </section>
+    <section id="boxreceive" class="screen">
+      <div class="hero compact"><div class="eyebrow">ПРИЁМКА КОРОБОВ · TSD</div><h1>Короба по партии</h1><p>Одинаковое название партии объединяет работу нескольких приёмщиков в одну приёмку. Короба сразу появляются в FulfillCore.</p></div>
+      <div id="tsdBoxSetup">
+        <label>Номер / название партии или приёмки<input id="tsdBoxReceiptName" maxlength="240" autocomplete="off" placeholder="Например: Поставка Аслан 25.09"></label>
+        <button id="tsdBoxOpenReceipt" class="primary big" type="button">Открыть / начать приёмку</button>
+      </div>
+      <div id="tsdBoxActive" class="hidden">
+        <div class="work-place"><b id="tsdBoxReceiptTitle">—</b><small id="tsdBoxReceiptMeta"></small></div>
+        <button id="tsdBoxChangeReceipt" class="ghost" type="button">← Другая партия</button>
+        <label>1. Отсканируйте или впишите палету<input id="tsdBoxPalletScan" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="QR / название палеты"></label>
+        <button id="tsdBoxUsePallet" class="secondary big" type="button">Открыть палету</button>
+        <div id="tsdBoxPalletCard" class="availability-card hidden"></div>
+        <button id="tsdBoxExtendPallet" class="secondary big hidden" type="button">Добавить короба на палету</button>
+        <label>2. Сканируйте короба<input id="tsdBoxScan" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" placeholder="ШК / QR короба"></label>
+        <button id="tsdBoxAccept" class="primary big" type="button">Принять короб</button>
+        <p class="work-note">Стандарт — 16 коробов на палету. После 16 программа попросит следующую палету. Если на текущей палете будет больше — нажмите «Добавить короба на палету».</p>
+        <div id="tsdBoxPallets" class="transit-tsd-items"></div>
+      </div>
+      <div id="tsdBoxMsg" class="msg" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="work" class="screen">
+      <div class="hero compact"><div class="eyebrow">ТОВАР И АДРЕС</div><h1 id="workTitle">Приёмка товара</h1><p id="workIntro"></p></div>
+      <div id="workSetup"><div id="workReceiptBlock"><label>Номер / название приёмки<input id="workReceiptNumber" maxlength="160" autocomplete="off" placeholder="Например: Приёмка 4534 или Контейнер 22.09"></label><p class="work-note">Один номер объединяет все короба этой приёмки. Остатки изменятся только после финальной выгрузки всей приёмки.</p></div>
+        <label>Что сканируем<select id="workTargetType"><option value="AUTO">Короб или адрес · определить по коду</option><option value="BOX">Короб</option><option value="LOCATION">Ячейка / палета без короба</option></select></label>
+        <div id="workReceivingOptions"><details><summary>Секция, палета и ряд</summary>
+          <label>Секция · необязательно<input id="workSection" autocomplete="off" placeholder="QR или код секции"></label>
+          <label>Палета / ячейка · необязательно<input id="workPlacement" autocomplete="off" placeholder="QR или код адреса"></label>
+          <label>Ряд короба · необязательно<input id="workRow" type="number" min="1" max="999" inputmode="numeric" placeholder="Например, 1"></label>
+          <label class="work-check"><input id="workPlaceEmpty" type="checkbox">Разместить пустой короб на указанной палете / ячейке</label>
+          <p class="work-note">Если короб уже размещён, адрес подставится сам. В ряду до 8 коробов. Указанная секция проверяется по схеме склада.</p>
+        </details></div>
+        <label>1. Сканируйте короб или ячейку<input id="workPlaceScan" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="QR / ШК места"></label>
+        <button id="workStart" class="primary big">Открыть место</button>
+        <button id="workDraftRefresh" class="secondary big">Продолжить сохранённый черновик</button><div id="workDrafts"></div>
+      </div>
+      <div id="workActive" class="hidden">
+        <div id="workControlPanel" class="work-control-panel">
+          <div class="work-place"><b id="workPlaceName"></b><small id="workAddress"></small><span id="workStatus"></span></div>
+          <button id="workChangePlace" class="secondary big" type="button">Сменить короб / пересканировать место</button>
+          <div id="workChangePlacePanel" class="work-change-place hidden">
+            <label>Сканируйте правильный короб или адрес<input id="workChangePlaceScan" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="QR / ШК правильного места"></label>
+            <div class="work-buttons"><button id="workChangePlaceApply" class="primary" type="button">Применить</button><button id="workChangePlaceCancel" class="secondary" type="button">Отмена</button></div>
+            <small id="workChangePlaceHint">При приёмке уже отсканированный товар останется в черновике и будет принят в новый короб. При инвентаризации список пересчёта будет заменён содержимым нового места.</small>
+          </div>
+          <div id="workScanBar" class="work-scan-bar">
+            <label>2. Сканируйте товар · один скан = одна штука<input id="workProductScan" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Штрихкод товара"></label>
+            <div class="work-buttons"><button id="workScanSend" class="primary">Добавить скан</button><button id="workUndo" class="secondary">Отменить скан</button></div>
+            <small id="workQueue"></small>
+          </div>
+        </div>
+        <section id="workItemsPanel" class="work-items-panel work-items-expanded" aria-label="Список товаров">
+          <button id="workItemsHandle" class="work-items-handle" type="button" aria-expanded="true" aria-controls="workItemsScroll">
+            <span class="work-items-grip" aria-hidden="true"></span>
+            <span class="work-items-title"><b id="workItemsPanelTitle">Товары</b><small id="workItemsPanelHint">Потяните вниз — показать сканирование</small></span>
+            <span id="workItemsChevron" class="work-items-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div id="workItemsScroll" class="work-items-scroll">
+            <div id="workRecoveryInline" class="work-recovery-inline hidden"><b>Нужно восстановить рабочий экран</b><p id="workRecoveryInlineText">Связь или операция прервались. Черновик сохранён.</p><div class="work-buttons"><button id="workRetryInline" class="primary" type="button">Восстановить и продолжить</button><button id="workReloadInline" class="secondary" type="button">Перезапустить экран</button></div></div>
+            <div id="workNewProduct" class="work-card hidden"><h2>Новый товар</h2><p id="workNewBarcode"></p><p class="work-note">Защита от ошибочного ШК: новый код нужно отсканировать дважды одинаково. Только после повторного скана можно связать его с артикулом и размером.</p><label>Артикул<input id="workNewArticle" maxlength="120"></label><label>Размер<input id="workNewSize" maxlength="80"></label><label>Название · необязательно<input id="workNewName" maxlength="200"></label><label>Категория<input id="workNewCategory" maxlength="160" placeholder="Куртки, костюмы, брюки…"></label><button id="workRegister" class="primary big">Создать в локальной базе и учесть скан</button><button id="workSkipUnknown" class="secondary big">Этот скан ошибочный · убрать</button></div>
+            <p id="workTotals" class="work-total"></p><div id="workLines"></div>
+            <div id="workFinishActions"><button id="workPost" class="primary big">Сохранить на остатки</button><button id="workCancel" class="ghost danger-text">Удалить черновик</button><p class="work-note">Черновик сохраняется на сервере. Остатки меняются после нажатия кнопки сохранения.</p></div>
+            <button id="workNext" class="primary big hidden">Короб готов → следующий короб / ячейка</button>
+          </div>
+        </section>
+      </div>
+      <div id="workMsg" class="msg" role="status" aria-live="polite"></div>
+      <button id="workRetry" class="secondary big hidden">Восстановить связь и продолжить</button>
+    </section>
+
+    <section id="transit" class="screen">
+      <div class="hero compact"><div class="eyebrow">ТРАНЗИТ · ПРИЁМКА ПОСТАВЩИКА</div><h1>Транзитный склад</h1><p>На ТСД показываются только активные партии, которые ещё на складе. История отправленного доступна в основной программе.</p></div>
+      <div id="transitTsdSetup">
+        <label>Поставщик<input id="transitTsdSupplierInput" maxlength="200" autocomplete="off" placeholder="Чей товар"></label>
+        <label>Номер / название партии<input id="transitTsdNumber" maxlength="160" autocomplete="off" placeholder="Например: Аслан 25.09 / партия 01"></label>
+        <button id="transitTsdCreate" class="primary big" type="button">Создать транзитную партию</button>
+        <button id="transitTsdRefresh" class="secondary big" type="button">Обновить список</button>
+        <div id="transitTsdBatches" class="transit-tsd-batches"></div>
+      </div>
+      <div id="transitTsdActive" class="hidden">
+        <div class="transit-tsd-head"><button id="transitTsdBack" class="ghost" type="button">← К партиям</button><div><h2 id="transitTsdTitle"></h2><p id="transitTsdPartner" class="work-note"></p></div></div>
+        <div class="transit-tsd-actions"><button id="transitTsdCreateBox" class="primary big" type="button">Создать новый короб</button></div>
+        <div class="transit-tsd-existing-box"><label>Отсканируйте короб: существующий или новый<input id="transitTsdExistingBox" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" placeholder="ШК / название физического короба"></label><button id="transitTsdOpenExistingBox" class="secondary big" type="button">Открыть / создать по скану</button><button id="transitTsdClearBoxField" class="ghost big" type="button">Очистить поле</button><small>Если короб уже есть и пустой — подключится он же. Если такого короба нигде нет — создастся только транзитный короб с этим точным ШК/названием. Он не попадёт в MAIN/FBS-остатки.</small></div><p class="work-note">Куда отгружаем и физическое «Покинул склад» оформляются только в основной программе в момент фактической отправки.</p>
+        <p class="transit-tsd-rule">Можно использовать созданный системой QR или сразу сканировать внешний ШК физического короба. Неизвестный короб создаётся только в транзите; после закрытия текущего короба следующий скан снова считается сканом короба.</p>
+        <div id="transitTsdBoxes" class="transit-tsd-boxes"></div><div class="button-row" style="margin:10px 0"><button id="transitTsdCancelBatch" class="danger" type="button">Отменить пустую партию</button></div>
+        <section id="transitTsdBoxPanel" class="transit-tsd-current hidden">
+          <div class="transit-tsd-current-head"><div><span class="eyebrow">ТЕКУЩИЙ КОРОБ</span><h2 id="transitTsdBoxCode"></h2><small id="transitTsdBoxMeta"></small></div><div class="button-row"><button id="transitTsdSwitchBox" class="ghost" type="button">Сменить / очистить короб</button><button id="transitTsdDeleteBox" class="danger" type="button">Удалить пустой короб</button><button id="transitTsdCloseBox" class="secondary" type="button">Закрыть короб</button></div></div>
+          <div id="transitTsdScanArea" class="transit-tsd-scan"><label>Сканируйте товар · один скан = 1 штука<input id="transitTsdProductScan" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" placeholder="ШК товара"></label><button id="transitTsdScanSend" class="primary" type="button">Добавить скан</button><button id="transitTsdRetryScan" class="secondary hidden" type="button">Проверить / повторить последний скан</button><small>Если ШК есть в локальной карточке — артикул и размер подставятся. Если карточки нет — FulfillCore создаст отдельный товар транзита по отсканированному ШК. Повтор того же ШК в истории переиспользует ту же карточку; MAIN/FBS не меняются.</small></div>
+          <details id="transitTsdManual" class="transit-tsd-manual"><summary>У товара нет ШК · добавить вручную</summary><label>Артикул<input id="transitTsdManualArticle" maxlength="120"></label><label>Размер<input id="transitTsdManualSize" maxlength="80"></label><label>Название · необязательно<input id="transitTsdManualName" maxlength="200"></label><button id="transitTsdManualAdd" class="primary big" type="button">Добавить 1 штуку</button></details>
+          <div id="transitTsdItems" class="transit-tsd-items"></div>
+        </section>
+      </div>
+      <div id="transitTsdMsg" class="msg" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="workhistory" class="screen">
+      <div class="hero compact"><div class="eyebrow">АУДИТ ТСД</div><h1>История действий ТСД</h1><p>Приёмка, инвентаризация, перемещения и складские сборки. Сотрудник фиксируется отдельно от учётной записи WMS.</p></div>
+      <div class="work-buttons"><button id="workHistoryRefresh" class="primary big" type="button">Обновить историю</button><button id="workHistoryExcel" class="secondary big" type="button">Выгрузить Excel</button></div>
+      <div id="workHistoryMsg" class="msg"></div>
+      <div id="workHistoryRows" class="work-history-list"></div>
+    </section>
+  
+    <!-- FC_R145F20_RECEIVING: independent from inventory/count screen #work. -->
+    <section id="receivegoods" class="screen">
+      <div class="hero compact"><div class="eyebrow">ОСНОВНОЙ СКЛАД · ПРИЁМКА ТОВАРА</div><h1>Приёмка товара</h1>
+        <p id="r20ReceiveScope"></p><p>Сканируйте существующий короб или ячейку. Товар появится на Основном складе после завершения всей приёмки.</p></div>
+      <div class="r20-receive-actions"><button id="r20ReceiveHome" class="secondary" type="button">← В меню</button><button id="r20ReceiveRefresh" class="secondary" type="button">Проверить состояние</button></div>
+      <div id="r20ReceiveMsg" class="msg" role="status" aria-live="polite"></div>
+      <div id="r20ReceiveSetup" class="r20-receive-card">
+        <label>Номер / название приёмки<input id="r20ReceiveReference" maxlength="200" autocomplete="off" placeholder="Например: Интрейд 29.09"></label>
+        <label>Тип места<select id="r20ReceiveType"><option value="AUTO">Определить по скану</option><option value="BOX">Существующий короб</option><option value="LOCATION">Ячейка / палета без короба</option></select></label>
+        <label>Короб или ячейка<input id="r20ReceivePlace" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Отсканируйте QR / введите название"></label>
+        <button id="r20ReceiveStart" class="primary big" type="button">Открыть место приёмки</button>
+      </div>
+      <div id="r20ReceiveActive" class="r20-receive-card" hidden>
+        <span class="eyebrow" id="r20ReceiveKind"></span><h2 id="r20ReceivePlaceName"></h2><p id="r20ReceiveAddress"></p>
+        <div class="r20-receive-actions"><button id="r20ReceiveChange" class="secondary" type="button">Сменить место</button><button id="r20ReceiveNext" class="secondary" type="button">Место готово → следующее</button></div>
+        <label>ШК товара · один скан = 1 шт.<input id="r20ReceiveProduct" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" placeholder="Сканируйте товар"></label>
+        <div class="r20-receive-actions"><button id="r20ReceiveScan" class="primary" type="button">Добавить скан</button><button id="r20ReceiveKeyboard" class="secondary" type="button">Клавиатура</button><button id="r20ReceiveUndo" class="secondary" type="button">Отменить последний скан</button></div>
+      </div>
+      <div id="r20ReceiveUnknown" class="r20-receive-card" hidden>
+        <h2>Новый товар</h2><p id="r20ReceiveUnknownText"></p>
+        <label>Артикул<input id="r20ReceiveArticle" maxlength="180"></label><label>Размер<input id="r20ReceiveSize" maxlength="100"></label>
+        <label>Название<input id="r20ReceiveName" maxlength="240"></label><label>Категория<input id="r20ReceiveCategory" maxlength="160" placeholder="Куртки, костюмы, брюки…"></label>
+        <div class="r20-receive-actions"><button id="r20ReceiveRegister" class="primary" type="button" disabled>Создать карточку и учесть 1 шт.</button><button id="r20ReceiveSkip" class="secondary" type="button">Отменить ошибочный скан</button></div>
+      </div>
+      <div class="r20-receive-card"><h2 id="r20ReceiveTotals">Товаров пока нет</h2><p id="r20ReceiveReceiptInfo"></p>
+        <div id="r20ReceiveLines"></div>
+        <div class="r20-receive-actions"><small class="work-note">Показываются все короба/места и все товары активной приёмки. Лимита по количеству строк нет.</small><button id="r20ReceiveMore" class="secondary" type="button" hidden aria-hidden="true">Показать ещё</button></div>
+        <button id="r20ReceiveComplete" class="primary big" type="button" disabled>Завершить всю приёмку → Основной склад</button>
+        <button id="r20ReceiveCancel" class="ghost danger-text" type="button" disabled>Удалить черновик</button>
+        <p class="work-note">Подтверждённые сканы хранятся на сервере. Смена места и выход в меню не удаляют черновик.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="scanFeedback" class="scan-feedback hidden"></div>
+
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-card">
+      <h2>Подтвердите отсутствие</h2>
+      <p id="confirmText"></p>
+      <div class="modal-actions"><button id="confirmNo" class="secondary big">Нет, проверить ещё</button><button id="confirmYes" class="danger big">Да, нет в наличии</button></div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="/static/r145f25.css?v=r145f25"/><script src="/static/r145f25-core.js?v=r145f32"></script>
+<script src="/static/tsd.js?v=r145f29"></script>
+  <script src="/static/tsd-stocktake.js?v=r140f1"></script>
+  <script src="/static/r145f32-queue.js?v=r145f32"></script>
+  <script src="/static/tsd-r145f20-receive.js?v=r145f35"></script>
+  <script src="/static/tsd-transit.js?v=r145f18"></script>
+  <script src="/static/tsd-boxes.js?v=r145f9"></script>
+</body>
+</html>

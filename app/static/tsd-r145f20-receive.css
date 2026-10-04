@@ -1,0 +1,23 @@
+/* FC_R145F20_TSD_RECEIVING */
+#receivegoods{display:none;padding-bottom:32px}
+#receivegoods.active{display:block}
+#receivegoods [hidden]{display:none!important}
+#receivegoods .r20-receive-card{margin:12px 0;padding:15px;border:1px solid #dce2ea;border-radius:14px;background:#fff;color:#182236}
+#receivegoods label{display:grid;gap:7px;margin:12px 0;font-size:14px;font-weight:600}
+#receivegoods input,#receivegoods select{box-sizing:border-box;max-width:100%;width:100%;min-width:0;border:1px solid #cbd4df;border-radius:10px;padding:12px;font:inherit;background:#fff;color:#182236}
+#receivegoods .r20-receive-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#receivegoods button{min-height:44px;white-space:normal}
+#receivegoods h2{font-size:20px;line-height:1.4;margin:8px 0;overflow-wrap:anywhere}
+#r20ReceivePlaceName{font-size:23px!important}
+#r20ReceiveAddress{font-size:16px;color:#4c5a70;overflow-wrap:anywhere;line-height:1.5}
+#r20ReceiveProduct{font-size:21px!important;font-weight:700}
+#r20ReceiveLines{max-height:48vh;overflow:auto;overscroll-behavior:contain}
+#receivegoods .r20-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px 0;border-bottom:1px solid #e5e9f0}
+#receivegoods .r20-line small{display:block;overflow-wrap:anywhere;margin-top:4px;color:#65738a}
+#receivegoods .msg{white-space:pre-wrap;overflow-wrap:anywhere}
+#receivegoods .msg.error{background:#fff0ed;color:#982929;padding:12px;border-radius:10px}
+#receivegoods .msg.ok{background:#edf8f2;color:#246742;padding:12px;border-radius:10px}
+/* FC_R145F29_TSD_REMOVE_ANY_BOX */
+.fc29-line-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.fc29-remove-one{font-size:12px;padding:7px 9px;white-space:nowrap}
+@media(max-width:560px){.fc29-line-actions{align-items:flex-end;flex-direction:column;gap:5px}.fc29-remove-one{font-size:11px;padding:6px 8px}}

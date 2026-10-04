@@ -1,0 +1,64 @@
+/* FC_R145F20_FINANCE_UI: all rules are scoped to the new finance/supply UI. */
+.fc-finance-ui, .fc-finance-ui *, .fc-finance-dialog, .fc-finance-dialog *, .fc-supply-ui, .fc-supply-ui *{box-sizing:border-box}
+.fc-finance-ui .panel{min-width:0;margin-bottom:16px}
+.fc-finance-ui .panel h2,.fc-finance-ui .panel h3,.fc-finance-dialog h2{margin:6px 0 10px}
+.fc-finance-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.fc-finance-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fc-finance-dates{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px}
+.fc-finance-ui label,.fc-finance-form label,.fc-finance-dialog-search{display:grid;gap:7px;min-width:0;font-size:13px;font-weight:600}
+.fc-finance-ui input,.fc-finance-ui select,.fc-finance-form input,.fc-finance-form select,.fc-finance-form textarea,.fc-finance-dialog-search input{min-width:0;width:100%;max-width:100%;padding:10px 12px;border:1px solid #dce3ef;border-radius:10px;background:#fff;color:#152238;font:inherit}
+.fc-finance-ui input:focus,.fc-finance-ui select:focus,.fc-finance-dialog input:focus,.fc-finance-form textarea:focus{outline:2px solid #b8b1ff;outline-offset:1px}
+.fc-finance-form{display:block!important}
+.fc-finance-form fieldset{display:grid;gap:16px;border:0;padding:0;margin:0;min-width:0}
+.fc-finance-form fieldset:disabled{opacity:.7}
+.fc-finance-form-grid{display:grid;grid-template-columns:2fr 2fr 1fr 1fr;gap:16px;align-items:start}
+.fc-finance-category-field{display:grid;gap:7px;font-size:13px;font-weight:600}
+.fc-finance-category-field small{font-weight:400;color:#66758e;overflow-wrap:anywhere}
+.fc-finance-category-field button{text-align:left}
+.fc-finance-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0 8px}
+.fc-finance-stats>div{display:grid;gap:10px;padding:20px;border:1px solid #e2e8f2;border-radius:14px;background:#f8faff;min-width:0}
+.fc-finance-stats span{font-size:11px;font-weight:700;letter-spacing:.06em;color:#71809a}
+.fc-finance-stats strong{font-size:28px;line-height:1.2;overflow-wrap:anywhere;color:#182842}
+.fc-finance-stats small{font-size:12px;color:#738197}
+.fc-finance-note{font-size:13px;line-height:1.55;color:#66758e;margin:16px 0 0}
+.fc-finance-msg{font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:12px}
+.fc-finance-msg:empty{display:none}
+.fc-finance-msg[data-kind="error"]{padding:12px;background:#fff0ef;color:#a93030;border-radius:10px}
+.fc-finance-msg[data-kind="ok"]{padding:12px;background:#edf8f2;color:#237144;border-radius:10px}
+.fc-finance-msg[data-kind="warn"]{padding:12px;background:#fff6e5;color:#845719;border-radius:10px}
+.fc-finance-ui .table-wrap,.fc-supply-ui .table-wrap{overflow:auto;max-width:100%}
+.fc-finance-ui table{width:100%;border-collapse:collapse}
+.fc-finance-ui th{font-size:11px;letter-spacing:.02em;color:#78869b;background:#f8fafc}
+.fc-finance-ui th,.fc-finance-ui td{padding:12px;text-align:left;border-bottom:1px solid #edf1f7;vertical-align:top}
+.fc-finance-ui td{font-size:13px}
+.fc-finance-ui td small{display:block;color:#71809a;margin-top:5px;max-width:300px;overflow-wrap:anywhere}
+.fc-finance-ui td[data-number]{white-space:nowrap;font-variant-numeric:tabular-nums}
+.fc-finance-ui .empty-state{text-align:center;padding:26px;color:#738197}
+.fc-finance-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:13px;color:#697891}
+.fc-finance-history-filters{display:grid;grid-template-columns:1fr 1fr 1.3fr 1.3fr;gap:14px;margin-top:14px}
+.fc-finance-history-search{grid-column:1/-1}
+.fc-finance-dialog{border:0;border-radius:18px;width:min(700px,calc(100vw - 32px));max-width:700px;max-height:90vh;padding:24px;background:#fff;color:#182842;box-shadow:0 24px 90px #17254033;overflow:auto}
+.fc-finance-dialog::backdrop{background:#14223880}
+.fc-finance-dialog:not([open]){display:none!important}
+.fc-finance-dialog[open]{display:flex;flex-direction:column;gap:16px}
+.fc-finance-dialog-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.fc-finance-dialog-head h2{font-size:21px;line-height:1.35}
+.fc-finance-dialog-head p{margin:0;font-size:13px;color:#66758e}
+.fc-finance-dialog button{cursor:pointer}
+.fc-finance-category-list{display:grid;gap:7px;max-height:36vh;overflow:auto;padding-right:4px;min-height:50px;flex:1 1 auto}
+.fc-finance-category-option{display:flex!important;align-items:flex-start;gap:12px;padding:12px;border:1px solid #e1e7f0;border-radius:10px;cursor:pointer;font-size:14px!important;font-weight:400!important}
+.fc-finance-category-option:hover{background:#f8f9ff}
+.fc-finance-category-option:has(input:checked){border-color:#9a8cf5;background:#f6f4ff}
+.fc-finance-category-option input[type="checkbox"]{width:18px;height:18px;flex:none;accent-color:#5745e9;margin:2px 0 0}
+.fc-finance-category-option>span{display:grid;gap:4px;overflow-wrap:anywhere}
+.fc-finance-category-option small{font-size:12px;color:#748197}
+.fc-finance-default{flex:none}
+.fc-finance-dialog-footer{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-top:1px solid #e7ebf2;padding-top:16px;font-size:13px}
+.fc-supply-ui>summary{cursor:pointer;line-height:1.5}
+.fc-supply-ui>summary b{margin-left:12px}
+.fc-supply-ui[open]>summary{margin-bottom:16px}
+.fc-supply-ui .fc-finance-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fc-supply-ui textarea{resize:vertical}
+.fc-finance-ui [hidden],.fc-finance-dialog [hidden]{display:none!important}
+@media(max-width:1150px){.fc-finance-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.fc-finance-stats{grid-template-columns:1fr}.fc-finance-history-filters,.fc-finance-form-grid,.fc-supply-ui .fc-finance-form-grid{grid-template-columns:1fr}.fc-finance-dialog{padding:18px;width:calc(100vw - 20px);max-height:92vh}.fc-finance-dialog-head h2{font-size:18px}.fc-finance-category-list{max-height:32vh}.fc-finance-stats strong{font-size:24px}.fc-finance-head>.fc-finance-actions{width:100%}}

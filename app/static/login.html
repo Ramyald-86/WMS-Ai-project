@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Вход — FulfillCore</title>
+  <link rel="stylesheet" href="/static/login.css" />
+</head>
+<body>
+  <main class="login-shell">
+    <section class="login-card">
+      <div class="brand-mark">FC</div>
+      <div class="eyebrow">FULFILLCORE</div>
+      <h1>Вход на склад</h1>
+      <p>Введите логин и пароль рабочего профиля.</p>
+      <form id="loginForm">
+        <label>Логин<input id="username" autocomplete="username" autofocus required /></label>
+        <label>Пароль<input id="password" type="password" autocomplete="current-password" required /></label>
+        <button type="submit">Войти</button>
+        <div id="error" class="error"></div>
+      </form>
+      <small>Соединение защищается HTTPS на постоянном сервере.</small>
+    </section>
+  </main>
+  <script>
+const form = document.getElementById('loginForm');
+const error = document.getElementById('error');
+
+async function postLogin(url, username, password) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, password})
+  });
+
+  let data = {};
+  try {
+    data = await r.json();
+  } catch (_) {}
+
+  return {r, data};
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  error.textContent = '';
+
+  const button = form.querySelector('button');
+  button.disabled = true;
+  button.textContent = 'Входим...';
+
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  try {
+    // Сначала старый вход FulfillCore.
+    let result = await postLogin('/auth/login', username, password);
+
+    if (result.r.ok) {
+      location.href = '/';
+      return;
+    }
+
+    // Если обычный вход не подошел — пробуем владельца ФФ.
+    result = await postLogin('/commercial/auth/login', username, password);
+
+    if (result.r.ok) {
+      location.href = '/';
+      return;
+    }
+
+    let detail = result.data && result.data.detail;
+    if (Array.isArray(detail)) {
+      detail = detail.map(x => x.msg || JSON.stringify(x)).join('; ');
+    }
+    if (!detail || typeof detail === 'object') {
+      detail = 'Неверный логин или пароль';
+    }
+
+    throw new Error(detail);
+
+  } catch (err) {
+    error.textContent = err.message || 'Не удалось войти';
+    button.disabled = false;
+    button.textContent = 'Войти';
+  }
+});
+</script>
+</body>
+</html>

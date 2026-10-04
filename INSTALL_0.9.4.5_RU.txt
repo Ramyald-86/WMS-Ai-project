@@ -1,0 +1,32 @@
+FulfillCore 0.9.4.5 WB_CHZ_PRINT_STABILITY
+
+Цель: не менять рабочую упаковку/резерв/Stock Core, а точечно исправить:
+1) ЧЗ: больше нет слепых запросов set_sgtin в неподходящем supplierStatus. Перед отправкой проверяется live-статус WB. Для NEW заказа, уже связанного с активной поставкой, FulfillCore повторно добавляет его в эту же поставку (официальный перевод в confirm), затем отправляет ЧЗ. 409 ограничен и не зацикливается.
+2) Фоновые повторы ЧЗ ограничены: максимум 3 параллельных WB-запроса, один запрос на заказ, cooldown после ответа. Упаковка и БД не ждут WB.
+3) Карточка заказа открывается сразу из локальной БД. Обновление метаданных WB идёт после открытия в фоне.
+4) Print Agent: на сайте публикуется SAFE SIMPLE на базе рабочего 1.1.7. Без службы, watchdog и Scheduled Task. Только обычный Startup текущего пользователя.
+5) Никаких изменений в логике резервов 0.9.4.4, списаниях или БД-схеме.
+
+Установка на сервер:
+1. С Windows загрузить ZIP на сервер:
+   scp "$env:USERPROFILE\Downloads\FulfillCore_0.9.4.5a_WB_CHZ_PRINT_STABILITY_INSTALL_FIX.zip" root@201.24.52.218:/root/
+2. SSH:
+   ssh root@201.24.52.218
+3. На сервере:
+   cd /opt/fulfillcore
+   python3 - <<'PY'
+import zipfile
+p='/root/FulfillCore_0.9.4.5a_WB_CHZ_PRINT_STABILITY_INSTALL_FIX.zip'
+with zipfile.ZipFile(p) as z:
+    z.extractall('/opt/fulfillcore')
+print('OK: 0.9.4.5 extracted')
+PY
+   chmod +x tools/deploy_live_0_9_4_5a.sh
+   bash tools/deploy_live_0_9_4_5a.sh
+
+В конце должно быть:
+OK: FulfillCore 0.9.4.5 WB_CHZ_PRINT_STABILITY is running
+
+После установки Print Agent:
+Откройте https://201-24-52-218.nip.io/help/print-agent
+Скачайте ZIP -> распакуйте -> INSTALL.bat -> PACK-код -> принтер -> токен -> INSTALL OK.

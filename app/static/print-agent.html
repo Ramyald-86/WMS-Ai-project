@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Установка Print Agent · FulfillCore</title>
+  <style>
+    :root{color-scheme:light;--ink:#172033;--muted:#667085;--line:#dbe3ee;--blue:#316bd5;--blue2:#2456b3;--soft:#f4f7fb;--green:#eaf7ee;--warn:#fff6d8}
+    *{box-sizing:border-box}body{margin:0;background:#eef2f7;color:var(--ink);font:16px/1.5 Inter,Segoe UI,Arial,sans-serif}
+    a{color:inherit}.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}.top-inner{max-width:1060px;margin:auto;padding:15px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-weight:800;font-size:19px}.back{text-decoration:none;color:var(--blue);font-weight:700}
+    main{max-width:1060px;margin:28px auto 56px;padding:0 22px}.hero,.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(33,55,90,.06)}
+    .hero{padding:32px}.tag{display:inline-flex;padding:5px 10px;border-radius:999px;background:#e9f0ff;color:var(--blue2);font-size:13px;font-weight:800}.hero h1{font-size:36px;line-height:1.12;margin:14px 0 10px}.hero p{color:var(--muted);max-width:760px;margin:0}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:11px;padding:12px 17px;text-decoration:none;font-weight:800;border:1px solid var(--line)}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:var(--blue2)}.btn.secondary{background:#fff;color:var(--blue2)}
+    .meta{margin-top:20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.meta div{background:var(--soft);border-radius:12px;padding:12px}.meta small{display:block;color:var(--muted)}.meta b{word-break:break-word}
+    .grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);gap:18px;margin-top:18px}.card{padding:26px}.card h2{margin:0 0 16px;font-size:24px}.step{display:grid;grid-template-columns:42px 1fr;gap:13px;padding:18px 0;border-top:1px solid var(--line)}.step:first-of-type{border-top:0;padding-top:0}.num{width:36px;height:36px;border-radius:10px;background:#e9f0ff;color:var(--blue2);display:grid;place-items:center;font-weight:900}.step h3{margin:3px 0 6px;font-size:17px}.step p{margin:0;color:#4b5565}.code{display:block;margin-top:8px;padding:10px 12px;border-radius:9px;background:#111827;color:#e5edf8;font:14px/1.55 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.notice{padding:15px;border-radius:12px;margin-top:16px}.notice.green{background:var(--green)}.notice.warn{background:var(--warn)}.notice b{display:block;margin-bottom:4px}
+    .check{list-style:none;padding:0;margin:0}.check li{padding:9px 0 9px 28px;border-bottom:1px solid var(--line);position:relative}.check li:last-child{border-bottom:0}.check li:before{content:'✓';position:absolute;left:0;color:#199447;font-weight:900}.files{font-size:14px;color:var(--muted)}.hash{font:12px/1.5 Consolas,monospace;overflow-wrap:anywhere;background:var(--soft);padding:10px;border-radius:9px;color:#344054}.token-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}.token-tools input{min-width:260px;flex:1;padding:11px;border:1px solid var(--line);border-radius:9px;font:14px Consolas,monospace}.token-tools button{cursor:pointer}.hidden{display:none!important}
+    footer{text-align:center;color:var(--muted);margin-top:22px;font-size:14px}@media(max-width:760px){.hero{padding:24px}.hero h1{font-size:29px}.meta,.grid{grid-template-columns:1fr}.top-inner{padding:13px 16px}main{padding:0 14px}.btn{width:100%}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="top-inner"><div class="brand">FulfillCore</div><a class="back" href="/">← Вернуться в программу</a></div></header>
+  <main>
+    <section class="hero">
+      <span class="tag">АКТУАЛЬНАЯ ВЕРСИЯ 1.1.8 STABLE</span>
+      <h1>Установка Print Agent</h1>
+      <p>Print Agent 1.1.8 построен на стабильном печатном ядре 1.1.7: прямой RAW TSPL для XPrinter, exactly-once и простой прямой автозапуск Windows. Добавлены только опрос очереди 150 мс, безопасное определение PNG/PDF и перечитывание токена после 401/403.</p>
+      <div class="actions">
+        <a class="btn primary" href="/downloads/print-agent/archive">Скачать Print Agent 1.1.8 STABLE ZIP</a>
+      </div>
+      <div class="meta">
+        <div><small>Файл</small><b>FulfillCore_Print_Agent_1.1.8_STABLE_117_CORE_FAST.zip</b></div>
+        <div><small>Сервер</small><b>https://201-24-52-218.nip.io</b></div>
+        <div><small>Обновлено</small><b>30 августа 2026</b></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Краткая установка</h2>
+        <div class="step"><div class="num">1</div><div><h3>Скачайте и полностью распакуйте ZIP</h3><p>Не запускайте агент внутри архива. Распакуйте его в постоянную папку:</p><code class="code">C:\printagent\FulfillCore_Print_Agent_1.1.8</code></div></div>
+        <div class="step"><div class="num">2</div><div><h3>Проверьте принтер Windows</h3><p>Принтер должен успешно печатать пробную страницу Windows. При необходимости запустите <b>LIST_PRINTERS.bat</b> и запишите точное имя.</p></div></div>
+        <div class="step"><div class="num">3</div><div><h3>Получите токен в настройках FulfillCore</h3><p>Откройте <b>Настройки печати → Установка и подключение → Показать токен</b>. Подключение к серверу, SSH и пароль сервера не нужны.</p><div class="token-tools"><button class="btn secondary" type="button" id="loadTokenBtn">Показать токен</button><input id="tokenValue" class="hidden" type="password" readonly autocomplete="off" aria-label="Токен Print Agent"/><button class="btn secondary hidden" type="button" id="toggleTokenBtn">Показать</button><button class="btn primary hidden" type="button" id="copyTokenBtn">Скопировать</button></div><p id="tokenMessage"></p></div></div>
+        <div class="step"><div class="num">4</div><div><h3>Запустите INSTALL_PRINT_AGENT.bat</h3><p>Это единственный установочный файл. Старые настройки он переносит автоматически. Если перенесённый токен устарел и сервер отвечает 401/403, установщик сразу попросит новый токен для того же PACK-кода — принтер и геометрия не сбрасываются.</p></div></div>
+        <div class="step"><div class="num">5</div><div><h3>Дождитесь INSTALL OK</h3><p>Установщик сам копирует агент в <b>C:\printagent\FulfillCore_Print_Agent_1.1.8</b>, запускает его в фоне и включает автозапуск Windows.</p></div></div>
+        <div class="step"><div class="num">6</div><div><h3>Проверьте тестовую этикетку</h3><p>В FulfillCore выберите тот же PACK-код и выполните тестовую печать. Для проверки процесса запустите <b>CHECK_BACKGROUND_AGENT.bat</b>.</p><code class="code">RUNNING: 1 process</code></div></div>
+        <div class="notice green"><b>Установка завершена</b>После перезагрузки компьютера этикетка печатается автоматически, без ручного запуска агента и без открытия окна печати.</div>
+      </section>
+
+      <aside>
+        <section class="card">
+          <h2>Перед началом</h2>
+          <ul class="check">
+            <li>Windows 10 или 11</li>
+            <li>Рабочий драйвер принтера</li>
+            <li>SumatraPDF установлен</li>
+            <li>У каждого ПК свой PACK-код</li>
+            <li>Есть вход в FulfillCore</li>
+          </ul>
+          <div class="notice warn"><b>Обновление старого агента</b>Распакуйте 1.1.8 и запустите <code>INSTALL_PRINT_AGENT.bat</code>. Он сам найдёт старый <code>config.json</code>, перенесёт настройки и проверит авторизацию. При 401/403 попросит свежий токен. Также в архиве есть <code>REPAIR_TOKEN.bat</code> — он меняет токен, проверяет его и сам перезапускает агент.</div>
+        </section>
+        <section class="card" style="margin-top:18px">
+          <h2>Проверка файла</h2>
+          <p class="files">SHA-256 архива:</p>
+          <div class="hash">9ff7c0ab2e4d313c8a4e4da21b239645defcae1878ecc471da4659ae22b884a2</div>
+          <div class="notice warn"><b>Токен защищён входом</b>Он показывается только после авторизации в FulfillCore и не входит в архив. Настройку 1.2.0 выполняйте по шагам на этой странице; Word-файл оставлен как базовая памятка по Windows-автозапуску.</div>
+        </section>
+      </aside>
+    </div>
+    <footer>FulfillCore Print Agent 1.1.8 STABLE · ядро 1.1.7 · XPrinter TSPL · очередь 150 мс</footer>
+  </main>
+  <script>
+    const loadBtn=document.getElementById('loadTokenBtn'),token=document.getElementById('tokenValue'),toggle=document.getElementById('toggleTokenBtn'),copy=document.getElementById('copyTokenBtn'),message=document.getElementById('tokenMessage');
+    loadBtn.addEventListener('click',async()=>{try{const current=(localStorage.getItem('fc_wb_print_station')||'PACK-01').trim().toUpperCase();const station=(prompt('Для какого рабочего места нужен токен?',current)||'').trim().toUpperCase();if(!station)return;localStorage.setItem('fc_wb_print_station',station);loadBtn.disabled=true;message.textContent='Получаем токен для '+station+'…';const response=await fetch('/help/print-agent/token?station_code='+encodeURIComponent(station),{cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.detail||'Не удалось получить токен');token.value=data.token||'';token.classList.remove('hidden');toggle.classList.remove('hidden');copy.classList.remove('hidden');loadBtn.textContent='Обновить токен';message.textContent='Токен привязан к '+station+'. В SETUP_AGENT.bat укажите тот же PACK-код.';}catch(error){message.textContent=error.message;}finally{loadBtn.disabled=false;}});
+    toggle.addEventListener('click',()=>{const show=token.type==='password';token.type=show?'text':'password';toggle.textContent=show?'Скрыть':'Показать';});
+    copy.addEventListener('click',async()=>{if(!token.value)return;try{await navigator.clipboard.writeText(token.value);}catch(_){token.type='text';token.select();document.execCommand('copy');token.type='password';}message.textContent='Токен скопирован.';});
+  </script>
+</body>
+</html>

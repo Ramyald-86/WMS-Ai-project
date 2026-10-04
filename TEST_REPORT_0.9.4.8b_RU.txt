@@ -1,0 +1,29 @@
+FulfillCore 0.9.4.8b — TEST REPORT
+
+Проверено на реконструированной цепочке 0.9.4 -> 0.9.4.2 -> 0.9.4.3 -> 0.9.4.4 -> 0.9.4.5 -> 0.9.4.6 -> 0.9.4.7 -> 0.9.4.8 REV2 -> 0.9.4.8a.
+
+PASS:
+- apply hotfix выполняется без ошибок;
+- повторный apply идемпотентен;
+- Python AST/py_compile: PASS;
+- версия health metadata: 0.9.4.8b;
+- scan-product route сохранен;
+- scan-chz route сохранен;
+- packing-progress route сохранен;
+- label-queue route сохранен;
+- scan-product выбирает NEW + PICKING;
+- SQL порядок: external_created_at ASC, created_at ASC;
+- hard gate no_picking_list/no_reservation удален из scan-product;
+- packing reservation auto-helper присутствует;
+- newer untouched reservation -> older FIFO order reassignment присутствует;
+- free exact-SKU -> Stock Core v2 reservation path присутствует;
+- consume_order_reservation больше не требует picking-list id;
+- PACKED_AFTER_PRINT_ACK использует best-effort write-off и не зависает после успешной физической печати;
+- PACKED по-прежнему расположен только после успешного Print Agent outcome;
+- strict CHZ/print gate сохранен;
+- app.js не изменяется этим релизом.
+
+Ограничение лабораторной проверки:
+реальный WB API, рабочая PostgreSQL база и физический Xprinter доступны только на live-сервере/рабочем месте.
+Именно поэтому deploy сначала патчит временную копию live-container, делает backup, SHA-сверку,
+smoke-check, затем перезапускает только API и проверяет /health/routes с автоматическим rollback.

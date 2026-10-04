@@ -1,0 +1,53 @@
+FulfillCore 0.9.4.2 DATABASE_STABILITY
+=====================================
+
+Причина, найденная в живых логах
+--------------------------------
+PostgreSQL завершал слишком долго открытую транзакцию:
+  psycopg.errors.IdleInTransactionSessionTimeout
+После этого тот же SQLAlchemy Session использовался без rollback и возникало:
+  sqlalchemy.exc.PendingRollbackError
+В результате запросы страницы WB начинали падать/виснуть и сайт выглядел «лежащим».
+
+Что делает 0.9.4.2
+------------------
+- перед немедленным резервом новых WB-заказов закрывает предыдущую DB-транзакцию;
+- если соединение уже было убито PostgreSQL, делает rollback и позволяет SQLAlchemy переподключиться;
+- резерв фиксируется отдельной короткой транзакцией;
+- при ЛЮБОЙ ошибке резерва выполняется rollback;
+- один проблемный резерв больше не должен отравлять DB Session всей страницы;
+- логика SKU, резерва, упаковки, ЧЗ, остатков и Print Agent не переписывается.
+
+Ключевая защита от регрессий
+----------------------------
+Установщик НЕ берёт старый marketplaces.py из архива.
+Он сначала копирует ФАКТИЧЕСКИЙ marketplaces.py из работающего контейнера, точечно патчит только найденный блок wb_sync_orders, затем кладёт одинаковую копию на HOST и в CONTAINER и сверяет SHA256.
+
+Установка
+---------
+Windows PowerShell:
+  scp "$env:USERPROFILE\Downloads\FulfillCore_0.9.4.2_DATABASE_STABILITY.zip" root@201.24.52.218:/root/
+  ssh root@201.24.52.218
+
+На сервере:
+  cd /opt/fulfillcore
+  python3 - <<'PY'
+import zipfile
+p='/root/FulfillCore_0.9.4.2_DATABASE_STABILITY.zip'
+with zipfile.ZipFile(p) as z:
+    z.extractall('/opt/fulfillcore')
+print('OK: 0.9.4.2 installer extracted')
+PY
+
+  cd /opt/fulfillcore
+  chmod +x tools/deploy_live_0_9_4_2.sh
+  bash tools/deploy_live_0_9_4_2.sh
+
+Успешный финал:
+  HTTP /health: {"status":"ok","version":"0.9.4.2"}
+  OK: FulfillCore 0.9.4.2 DATABASE_STABILITY is running
+
+Важно
+-----
+Не запускайте неудачный пакет 0.9.4.1 CHZ_CANCEL_RELEASE.
+0.9.4.2 сначала устраняет падение сайта. Автоотвязку ЧЗ после отмены лучше вернуть отдельным следующим точечным обновлением после проверки стабильности.

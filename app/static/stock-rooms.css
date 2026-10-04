@@ -1,0 +1,75 @@
+/* r65: scope all layout changes to warehouse screens. */
+.r65-page,.r65-page *,.r65-dialog,.r65-dialog *{box-sizing:border-box}
+.r65-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:18px}
+.r65-toolbar h2{margin:0;flex:1;min-width:180px}
+.r65-toolbar input{flex:1 1 250px;min-width:0;max-width:540px}
+.r65-choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:1100px}
+.r65-choice .panel{padding:26px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.r65-choice h2,.r65-choice p{margin:0}.r65-choice p{color:#667085;line-height:1.6;flex:1}
+.r65-choice .primary{align-self:flex-start}
+.r65-tag{align-self:flex-start;border-radius:8px;padding:5px 10px;background:#eeebff;color:#493bd1;font-size:13px;font-weight:700}
+.r65-tag.fbs{background:#fce7f8;color:#9c2479}
+.r65-status{font-size:13px;color:#667085;line-height:1.6;margin:10px 0 16px;overflow-wrap:anywhere}
+.r65-stats{display:flex;flex-wrap:wrap;gap:22px;margin:16px 0;font-size:15px}.r65-stats b{font-size:21px;margin-right:5px}
+.r65-table{table-layout:fixed;width:100%;min-width:0!important;border-collapse:collapse}
+.r65-table th,.r65-table td{min-width:0!important;white-space:normal;overflow-wrap:anywhere;vertical-align:top;padding:15px 12px;text-align:left}
+.r65-table th{font-size:12px;color:#667085;text-transform:uppercase}.r65-table th:first-child{width:36%}
+.r65-table td{border-top:1px solid #e9edf3}.r65-table small{display:block;color:#667085;line-height:1.5;margin-top:5px}
+.r65-table button{white-space:normal;max-width:100%}.r65-table .r65-qty{font-weight:750;font-size:17px}
+#page-inventory .r65-table th:first-child{width:40px}#page-inventory .r65-table th:nth-child(2){width:30%}
+#page-inventory .r65-table input[type=checkbox]{min-width:0;width:18px;height:18px}
+.r65-pager{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.r65-place-list{display:grid;gap:12px;margin-top:18px}
+.r65-place{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:18px;padding:16px;border:1px solid #e4e7ec;border-radius:12px}
+.r65-place small{display:block;color:#667085;margin-top:5px}.r65-place button{white-space:normal}
+.r65-dialog{border:0;border-radius:20px;width:min(1040px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:26px;box-shadow:0 24px 70px #10182855;color:#152238;background:#fff;overflow:auto}
+.r65-dialog::backdrop{background:#11182788}.r65-dialog header{display:flex;justify-content:space-between;gap:16px;align-items:start;margin-bottom:16px}
+.r65-dialog header h2{margin:0}.r65-dialog header p{margin:8px 0 0;color:#667085;line-height:1.5}
+.r65-dialog .r65-close{flex-shrink:0}.r65-dialog label{display:grid;gap:7px;min-width:0}
+.r65-dialog input{width:100%;min-width:0!important}.r65-dialog .r65-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.r65-dialog .r65-form-grid .wide{grid-column:1/-1}.r65-dialog .r65-form-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:22px}
+.r65-dialog details{border-top:1px solid #e4e7ec;padding-top:16px;margin-top:20px}.r65-dialog summary{cursor:pointer;font-weight:700}
+.r65-page details.r65-advanced{padding:12px 0}.r65-advanced summary{cursor:pointer;padding:10px 0;font-weight:650}
+#inventoryBulkToolbar{padding:14px!important;margin:12px 0!important}
+#inventoryBulkToolbar .inventory-bulk-summary>small{display:none}
+#inventoryBulkToolbar .inventory-bulk-actions{display:flex;flex-wrap:wrap;gap:8px}
+#inventoryBulkToolbar button{font-size:14px;padding:10px 14px;white-space:normal}
+#page-inventory .inventory-availability-filter:has(#inventoryStockZone){display:none}
+#page-inventory .table-wrap:has(#inventoryBody){overflow:visible}
+#page-inventory .top-table-scroll{display:none}
+/* Inputs must be allowed to shrink inside the receiving form, not the viewport. */
+#page-receive .workspace-grid>*{min-width:0}
+#page-receive .manual-receiving-structure{container-type:inline-size;min-width:0}
+#page-receive .manual-structure-fields{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+#page-receive .manual-structure-fields>label{min-width:0;width:auto}
+#page-receive .manual-structure-fields>label:last-child{grid-column:1/-1}
+#page-receive .manual-structure-fields input{width:100%!important;min-width:0!important;max-width:100%;box-sizing:border-box}
+#page-receive .manual-structure-title{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+#page-receive .manual-structure-title h3{margin:4px 0;overflow-wrap:anywhere}
+#page-receive .manual-structure-actions{display:flex;flex-wrap:wrap;gap:10px}
+#page-receive .manual-structure-actions button{white-space:normal;max-width:100%;flex:0 1 auto}
+#page-receive .manual-receiving-structure input[type=checkbox]{width:18px!important;min-width:18px!important;flex:0 0 18px;margin:0}
+#manualReceiveStructureSummary b,#manualReceiveStructureSummary span{display:block;margin:5px 0}
+#manualReceiveActiveContext b,#manualReceiveActiveContext span,#manualReceiveActiveContext small{display:block;margin:5px 0}
+#page-receive form,#page-receive .manual-structure-title>div{min-width:0}
+#page-receive .manual-structure-actions>label{display:flex;align-items:center;gap:8px;white-space:normal}
+#inventoryProductModalBody details:has(#inventoryManualAddForm){display:none}
+#page-receive .manual-structure-current b,#page-receive .manual-structure-current span{display:block;margin:5px 0}
+#page-warehousework .r62-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));align-items:end;gap:12px}
+#page-warehousework .r62-actions label,#page-warehousework .r62-actions input{min-width:0;width:100%;box-sizing:border-box}
+@media(max-width:760px){.r65-choice{grid-template-columns:1fr}.r65-place{grid-template-columns:minmax(0,1fr) auto}.r65-place button{grid-column:1/-1;justify-self:start}.r65-dialog{padding:18px}.r65-dialog .r65-form-grid{grid-template-columns:1fr}.r65-table th,.r65-table td{padding:12px 7px}.r65-table th:first-child{width:38%}.r65-toolbar h2{flex-basis:100%}}
+@media(max-width:480px){#page-receive .manual-structure-fields{grid-template-columns:minmax(0,1fr)!important}.r65-dialog header{flex-wrap:wrap}.r65-table .r65-secondary-col{display:none}}
+
+/* r66 side selector: same shrinking rules as receiving inputs. */
+#page-receive .manual-structure-fields select{min-width:0!important;width:100%;max-width:100%;box-sizing:border-box}
+.r66-box-route{margin:12px 0 20px;padding:16px;background:#f4f3ff;border:1px solid #ddd6fe;border-radius:12px}
+.r66-box-route>small{display:block;margin-top:8px;color:#667085}
+.r66-box-route form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:12px;align-items:end;margin-top:14px}
+.r66-box-route label{min-width:0;display:grid;gap:6px}.r66-box-route select,.r66-box-route input{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+.r66-box-route [data-route-result]{grid-column:1/-1;color:#b42318}
+@media(max-width:650px){.r66-box-route form{grid-template-columns:1fr}.r66-box-route button{justify-self:start}}
+/* r86: selection stays at the right edge of the MAIN stock table. */
+.r86-main-select{width:54px;text-align:right;vertical-align:middle}
+.r86-main-select input[type="checkbox"]{width:20px;height:20px}
+.r86-main-bulk{align-items:center}
+.r86-main-bulk .r65-stats{margin:0}

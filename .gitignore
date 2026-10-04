@@ -1,0 +1,81 @@
+# Секреты. Шаблоны без паролей остаются в репозитории.
+.env
+.env.*
+!.env.example
+admin-password.env
+server/.env.server
+server/.env.server.*
+!server/.env.server.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Редакторы и ОС
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Локальные логи, базы и архивы
+*.log
+*.sqlite
+*.sqlite3
+*.db
+*.zip
+*.tar
+*.gz
+*.tgz
+*.7z
+
+# Временные копии и бэкапы отдельных файлов
+*.tmp
+*.bak
+*.bak_*
+*.backup_*
+*.before_*
+
+# Снимки и сломанные копии приложения с сервера
+backup_*/
+app.broken_*/
+FulfillCore_*/
+CHZ_FAST_UPDATE/
+
+# Служебная выгрузка handoff, не исходники
+_TECHNICAL/
+_USERPROFILE/
+
+# Копии файлов в корне, дублирующие пакет app/
+/app.js
+/inventory.py
+/marketplaces.py
+/marketplaces_current.py
+/receiving.py
+/C_receiving_check.txt
+/files/
+
+# Бинарные раздачи приложения (APK/DOCX); в handoff бывают битые имена файлов
+app/downloads/
+
+# Локальные конфиги print agent (пример остаётся)
+print_agent/config.json
+print_agent/config.local.json

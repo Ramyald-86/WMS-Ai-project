@@ -1,0 +1,8 @@
+{
+  "server_url": "https://wms.example.ru",
+  "station_code": "PACK-01",
+  "printer_name": "Xprinter",
+  "sumatra_path": "C:\\Program Files\\SumatraPDF\\SumatraPDF.exe",
+  "poll_seconds": 2,
+  "agent_token": "PASTE_PRINT_AGENT_TOKEN_FROM_SERVER"
+}
