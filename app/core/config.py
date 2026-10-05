@@ -12,6 +12,14 @@ class Settings(BaseSettings):
     secure_cookie: bool = False
     print_agent_token: str = ""
 
+    # Multi-fulfillment host routing. Example: PLATFORM_BASE_DOMAIN=wms.example.ru
+    # then fc-spb.wms.example.ru resolves fulfillment.subdomain == "fc-spb".
+    platform_base_domain: str = ""
+    # Extra apex hosts (comma-separated) treated as platform, not tenant subdomains.
+    platform_host_aliases: str = ""
+    # off | soft | strict — see app.services.tenant_host
+    tenant_host_mode: str = "soft"
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

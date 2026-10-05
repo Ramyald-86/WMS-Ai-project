@@ -60,6 +60,8 @@ from app.routers.r145f23_fbs_export import router as r145f23_fbs_export_router
 from app.routers.r145f24_history import router as r145f24_history_router
 from app.routers.r145f20_defect_bulk import router as r145f20_defect_bulk_router, install_schema as install_r145f20_defect_schema
 from app.routers.reliability import agent_router as reliability_agent_router, router as reliability_router
+from app.routers.platform_fulfillments import router as platform_fulfillments_router
+from app.routers.tenant import router as tenant_router
 from app.services.client_location_guard import install_client_location_guard
 from app.services.db_pool_tuning import db_pool_status, tune_db_pool
 from app.services.runtime_reliability import background_lane_status, install_runtime_schema, normalize_station_code, station_token, verify_station_token
@@ -67,6 +69,8 @@ from app.services.stock_reservations import backfill_legacy_reservations, instal
 from app.services.stock_outbox_worker import start_stock_outbox_worker
 from app.services.wb_sale_reservation_worker import start_wb_sale_reservation_worker
 from app.services.transit_stock import install_schema as install_transit_schema
+from app.services.fulfillment_platform import install_schema as install_fulfillment_platform_schema
+from app.services.tenant_host import request_host, resolve_tenant_host
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -154,7 +158,22 @@ async def ui_no_cache(request: Request, call_next):
 @app.middleware("http")
 async def single_profile_auth(request: Request, call_next):
     path = request.url.path
-    public = path in {"/login", "/auth/login", "/health", "/health/ready", "/tsd/install", "/tsd/login", "/tsd/app-info", "/tsd/install-qr.png", "/downloads/tsd/android.apk", "/client", "/client/login"} or path.startswith("/static/") or path.startswith("/client/")
+    public = path in {
+        "/login",
+        "/auth/login",
+        "/health",
+        "/health/ready",
+        "/tsd/install",
+        "/tsd/login",
+        "/tsd/app-info",
+        "/tsd/install-qr.png",
+        "/downloads/tsd/android.apk",
+        "/client",
+        "/client/login",
+        "/tenant/current",
+        "/tenant/resolve",
+        "/internal/caddy-ask",
+    } or path.startswith("/static/") or path.startswith("/client/") or path.startswith("/health")
     if public:
         return await call_next(request)
 
@@ -186,6 +205,53 @@ async def single_profile_auth(request: Request, call_next):
     if wants_html:
         return RedirectResponse(url="/tsd/login" if path.startswith("/tsd") else "/login", status_code=303)
     return JSONResponse({"detail": "Требуется вход"}, status_code=401)
+
+
+@app.middleware("http")
+async def resolve_fulfillment_tenant(request: Request, call_next):
+    """Attach fulfillment context from Host / X-Forwarded-Host.
+
+    Registered after auth middleware so it executes first (Starlette LIFO) and can
+    reject unknown/suspended tenant hosts before login redirects.
+    """
+    path = request.url.path
+    skip_db = path.startswith("/health") or path.startswith("/static/")
+    host = request_host(request.headers.get("host"), request.headers.get("x-forwarded-host"))
+    request.state.tenant_host = host
+    request.state.fulfillment_id = None
+    request.state.fulfillment_code = None
+    request.state.tenant_resolution = None
+
+    if skip_db:
+        return await call_next(request)
+
+    generator = get_db()
+    db = next(generator)
+    try:
+        resolution = resolve_tenant_host(db, host)
+        request.state.tenant_resolution = resolution
+        request.state.fulfillment_id = resolution.fulfillment_id
+        request.state.fulfillment_code = resolution.fulfillment_code
+        if not resolution.allowed and path != "/internal/caddy-ask":
+            status = 403 if resolution.fulfillment is not None else 404
+            return JSONResponse(
+                {
+                    "detail": resolution.reason or "Хост фулфилмента недоступен",
+                    "host": resolution.host,
+                    "subdomain": resolution.subdomain,
+                    "kind": resolution.kind,
+                },
+                status_code=status,
+            )
+    except Exception as exc:
+        # Tenant routing must not take down the warehouse app on DB blips.
+        logging.getLogger(__name__).warning("tenant host resolve failed for %s: %s", host, exc)
+    finally:
+        try:
+            generator.close()
+        except Exception:
+            pass
+    return await call_next(request)
 
 
 app.include_router(auth_router)
@@ -278,6 +344,8 @@ app.include_router(r145f24_history_router)
 app.include_router(client_portal_router)
 app.include_router(reliability_router)
 app.include_router(reliability_agent_router)
+app.include_router(tenant_router)
+app.include_router(platform_fulfillments_router)
 app.include_router(r145f50_receiving_router)
 app.include_router(r145f51_receiving_router)
 app.include_router(r145f52_receiving_router)
@@ -674,6 +742,28 @@ def r145f27_receiving_startup():
         db.rollback();raise
     finally:
         generator.close()
+
+
+@app.on_event("startup")
+def fulfillment_platform_startup():
+    # Additive multi-fulfillment tables. Failure must not take down warehouse operations.
+    generator = get_db()
+    db = next(generator)
+    try:
+        result = install_fulfillment_platform_schema(db)
+        print(f"FulfillCore fulfillment platform schema: ready ({result})")
+    except Exception as exc:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        print(f"FulfillCore fulfillment platform schema warning: {exc}")
+    finally:
+        try:
+            generator.close()
+        except Exception:
+            pass
+
 
 # FC_R145F44_STRICT_BOX_ULTRA_SYNC
 

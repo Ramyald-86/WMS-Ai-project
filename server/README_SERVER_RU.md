@@ -59,6 +59,24 @@ docker compose --env-file server/.env.server -f docker-compose.server.yml up -d
 
 В `server/.env.server` есть `PRINT_AGENT_TOKEN`. На упаковочном компьютере укажите его в `print_agent/config.json` в поле `agent_token`. Пароль пользователя FulfillCore агенту не нужен.
 
+## Поддомены фулфилментов
+
+После включения multi-FC:
+
+1. В DNS регистратора добавьте wildcard: `*.ваш-домен → IP VPS` (и оставьте A-запись самого домена).
+2. В `server/.env.server` задайте:
+   - `DOMAIN=ваш-домен`
+   - `PLATFORM_BASE_DOMAIN=ваш-домен`
+   - `TENANT_HOST_MODE=strict` (рекомендуется в проде)
+3. Пересоздайте Caddy/API:
+   `docker compose --env-file server/.env.server -f docker-compose.server.yml up -d --force-recreate caddy api`
+4. При создании FC укажите `subdomain` (например `fc-spb`) → вход: `https://fc-spb.ваш-домен`.
+5. Caddy выпускает HTTPS на поддомены через on-demand TLS; API разрешает выпуск только для известных хостов (`/internal/caddy-ask`).
+
+Свой домен клиента (`custom_domain`) требует отдельной DNS A/CNAME-записи на IP VPS и отдельного site-блока в Caddy (или on-demand для этого хоста).
+
+Проверка: `GET https://fc-spb.ваш-домен/tenant/current`.
+
 ## Backup
 
 `server/install_server.sh` добавляет ежедневный локальный backup. Это защищает от большинства ошибок в данных, но не от потери всего VPS. До начала серьёзной эксплуатации настройте копирование backup-файлов во внешнее S3/NAS/другое хранилище.

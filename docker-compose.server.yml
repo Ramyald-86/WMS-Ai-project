@@ -26,6 +26,9 @@ services:
       SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-12}
       SECURE_COOKIE: "true"
       PRINT_AGENT_TOKEN: ${PRINT_AGENT_TOKEN}
+      PLATFORM_BASE_DOMAIN: ${PLATFORM_BASE_DOMAIN:-${DOMAIN}}
+      PLATFORM_HOST_ALIASES: ${PLATFORM_HOST_ALIASES:-}
+      TENANT_HOST_MODE: ${TENANT_HOST_MODE:-soft}
     depends_on:
       db:
         condition: service_healthy
