@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
-from app.core.auth import read_session_token
+from app.core.auth import read_session_token, session_principal
 from app.core.config import settings
 from app.core.database import get_db
 from app.routers.auth import router as auth_router
@@ -204,9 +204,44 @@ async def single_profile_auth(request: Request, call_next):
         return JSONResponse({"detail": "Неверный токен Print Agent или код рабочего места"}, status_code=401)
 
     session = read_session_token(request.cookies.get("fc_session"), settings.app_secret_key)
-    if session and session.get("u") == settings.admin_username:
-        request.state.username = session["u"]
-        return await call_next(request)
+    if session:
+        principal = session_principal(session)
+        username = str(session.get("u") or "")
+        if principal == "platform" and username == settings.admin_username:
+            # Unchanged apex admin access; also allowed on tenant hosts for support.
+            request.state.username = username
+            request.state.auth_principal = "platform"
+            request.state.auth_role = str(session.get("role") or "PLATFORM_ADMIN")
+            request.state.auth_fulfillment_id = None
+            request.state.auth_user_id = None
+            return await call_next(request)
+
+        if principal == "fc":
+            resolution = getattr(request.state, "tenant_resolution", None)
+            host_fid = str(getattr(request.state, "fulfillment_id", "") or "")
+            session_fid = str(session.get("fid") or "")
+            # FC sessions are valid only on their own fulfillment host.
+            if not resolution or resolution.kind not in {"subdomain", "custom_domain"}:
+                return JSONResponse(
+                    {"detail": "Сессия сотрудника фулфилмента не действует на основном домене", "code": "FC_SESSION_APEX"},
+                    status_code=403,
+                )
+            if not session_fid or session_fid != host_fid:
+                return JSONResponse(
+                    {"detail": "Сессия принадлежит другому фулфилменту", "code": "FC_SESSION_MISMATCH"},
+                    status_code=403,
+                )
+            if path.startswith("/platform/"):
+                return JSONResponse(
+                    {"detail": "Platform API доступен только администратору платформы", "code": "PLATFORM_ONLY"},
+                    status_code=403,
+                )
+            request.state.username = username
+            request.state.auth_principal = "fc"
+            request.state.auth_role = str(session.get("role") or "")
+            request.state.auth_fulfillment_id = session_fid
+            request.state.auth_user_id = str(session.get("uid") or "") or None
+            return await call_next(request)
 
     wants_html = request.method == "GET" and "text/html" in request.headers.get("accept", "")
     if wants_html:

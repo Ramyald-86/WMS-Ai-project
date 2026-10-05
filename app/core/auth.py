@@ -1,3 +1,11 @@
+"""Session token helpers.
+
+Legacy platform tokens keep working: payload {u, exp, n}.
+Fulfillment users add: t=fc, fid, role, uid.
+"""
+
+from __future__ import annotations
+
 import base64
 import hashlib
 import hmac
@@ -5,6 +13,7 @@ import json
 import os
 import secrets
 import time
+from typing import Any
 
 
 def _b64e(data: bytes) -> str:
@@ -35,12 +44,29 @@ def verify_password(password: str, encoded: str) -> bool:
         return False
 
 
-def create_session_token(username: str, secret_key: str, ttl_hours: int) -> str:
-    payload = {
+def create_session_token(
+    username: str,
+    secret_key: str,
+    ttl_hours: int,
+    *,
+    principal: str = "platform",
+    fulfillment_id: str | None = None,
+    role: str | None = None,
+    user_id: str | None = None,
+) -> str:
+    payload: dict[str, Any] = {
         "u": username,
         "exp": int(time.time()) + int(ttl_hours * 3600),
         "n": secrets.token_hex(8),
+        "t": principal,
     }
+    if principal == "fc":
+        if not fulfillment_id or not role:
+            raise ValueError("FC-сессия требует fulfillment_id и role")
+        payload["fid"] = str(fulfillment_id)
+        payload["role"] = str(role)
+        if user_id:
+            payload["uid"] = str(user_id)
     body = _b64e(json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
     sig = _b64e(hmac.new(secret_key.encode("utf-8"), body.encode("ascii"), hashlib.sha256).digest())
     return f"{body}.{sig}"
@@ -62,3 +88,13 @@ def read_session_token(token: str | None, secret_key: str) -> dict | None:
         return payload
     except Exception:
         return None
+
+
+def session_principal(session: dict | None) -> str:
+    if not session:
+        return ""
+    value = str(session.get("t") or "").strip().lower()
+    if value in {"platform", "fc"}:
+        return value
+    # Legacy cookies created before multi-FC auth.
+    return "platform"
