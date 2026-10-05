@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import bindparam, or_, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -8,6 +8,13 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.services.stock_reservations import active_reserved_totals
 from app.services.stock_core_v2 import stock_truth_for_sku
+from app.services.tenant_scope import (
+    ensure_client_in_request_scope,
+    ensure_warehouse_in_request_scope,
+    get_request_scope,
+    link_client_to_fulfillment,
+    link_warehouse_to_fulfillment,
+)
 from app.models import Client, Container, InventoryBalance, Location, SKU, Warehouse
 from app.schemas.masterdata import (
     ClientCreate,
@@ -38,27 +45,67 @@ def _commit_or_409(db: Session, obj):
 
 
 @router.post("/clients", response_model=ClientRead)
-def create_client(payload: ClientCreate, db: Session = Depends(get_db)):
-    return _commit_or_409(db, Client(**payload.model_dump()))
+def create_client(payload: ClientCreate, request: Request, db: Session = Depends(get_db)):
+    obj = Client(**payload.model_dump())
+    scope = get_request_scope(request)
+    try:
+        db.add(obj)
+        db.flush()
+        if scope and scope.enforced:
+            link_client_to_fulfillment(db, scope.fulfillment_id, obj.id)
+            # Keep request-local allow-list in sync for subsequent ops in rare chained calls.
+            scope.client_ids.add(obj.id)
+        db.commit()
+        db.refresh(obj)
+        return obj
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Объект с таким кодом/штрихкодом уже существует") from exc
 
 
 @router.get("/clients", response_model=list[ClientRead])
-def list_clients(db: Session = Depends(get_db)):
-    return db.execute(select(Client).order_by(Client.name)).scalars().all()
+def list_clients(request: Request, db: Session = Depends(get_db)):
+    stmt = select(Client).order_by(Client.name)
+    scope = get_request_scope(request)
+    if scope and scope.enforced:
+        if not scope.client_ids:
+            return []
+        stmt = stmt.where(Client.id.in_(scope.client_ids))
+    return db.execute(stmt).scalars().all()
 
 
 @router.post("/warehouses", response_model=WarehouseRead)
-def create_warehouse(payload: WarehouseCreate, db: Session = Depends(get_db)):
-    return _commit_or_409(db, Warehouse(**payload.model_dump()))
+def create_warehouse(payload: WarehouseCreate, request: Request, db: Session = Depends(get_db)):
+    obj = Warehouse(**payload.model_dump())
+    scope = get_request_scope(request)
+    try:
+        db.add(obj)
+        db.flush()
+        if scope and scope.enforced:
+            link_warehouse_to_fulfillment(db, scope.fulfillment_id, obj.id)
+            scope.warehouse_ids.add(obj.id)
+        db.commit()
+        db.refresh(obj)
+        return obj
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Объект с таким кодом/штрихкодом уже существует") from exc
 
 
 @router.get("/warehouses", response_model=list[WarehouseRead])
-def list_warehouses(db: Session = Depends(get_db)):
-    return db.execute(select(Warehouse).order_by(Warehouse.name)).scalars().all()
+def list_warehouses(request: Request, db: Session = Depends(get_db)):
+    stmt = select(Warehouse).order_by(Warehouse.name)
+    scope = get_request_scope(request)
+    if scope and scope.enforced:
+        if not scope.warehouse_ids:
+            return []
+        stmt = stmt.where(Warehouse.id.in_(scope.warehouse_ids))
+    return db.execute(stmt).scalars().all()
 
 
 @router.post("/locations", response_model=LocationRead)
-def create_location(payload: LocationCreate, db: Session = Depends(get_db)):
+def create_location(payload: LocationCreate, request: Request, db: Session = Depends(get_db)):
+    ensure_warehouse_in_request_scope(request, payload.warehouse_id)
     warehouse = db.get(Warehouse, payload.warehouse_id)
     if not warehouse:
         raise HTTPException(status_code=404, detail="Склад не найден")
@@ -70,9 +117,11 @@ def create_location(payload: LocationCreate, db: Session = Depends(get_db)):
 @router.get("/locations", response_model=list[LocationRead])
 def list_locations(
     warehouse_id: uuid.UUID,
+    request: Request,
     q: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
+    ensure_warehouse_in_request_scope(request, warehouse_id)
     stmt = select(Location).where(Location.warehouse_id == warehouse_id)
     if q:
         like = f"%{q}%"
@@ -81,7 +130,8 @@ def list_locations(
 
 
 @router.post("/skus", response_model=SKURead)
-def create_sku(payload: SKUCreate, db: Session = Depends(get_db)):
+def create_sku(payload: SKUCreate, request: Request, db: Session = Depends(get_db)):
+    ensure_client_in_request_scope(request, payload.client_id)
     if not db.get(Client, payload.client_id):
         raise HTTPException(status_code=404, detail="Клиент не найден")
     return _commit_or_409(db, SKU(**payload.model_dump()))
@@ -90,9 +140,11 @@ def create_sku(payload: SKUCreate, db: Session = Depends(get_db)):
 @router.get("/skus", response_model=list[SKURead])
 def list_skus(
     client_id: uuid.UUID,
+    request: Request,
     q: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
+    ensure_client_in_request_scope(request, client_id)
     stmt = select(SKU).where(SKU.client_id == client_id)
     if q:
         like = f"%{q}%"
@@ -109,7 +161,9 @@ def list_skus(
 
 
 @router.post("/containers", response_model=ContainerRead)
-def create_container(payload: ContainerCreate, db: Session = Depends(get_db)):
+def create_container(payload: ContainerCreate, request: Request, db: Session = Depends(get_db)):
+    ensure_client_in_request_scope(request, payload.client_id)
+    ensure_warehouse_in_request_scope(request, payload.warehouse_id)
     if not db.get(Client, payload.client_id):
         raise HTTPException(status_code=404, detail="Клиент не найден")
     warehouse = db.get(Warehouse, payload.warehouse_id)
@@ -128,9 +182,12 @@ def create_container(payload: ContainerCreate, db: Session = Depends(get_db)):
 def list_containers(
     client_id: uuid.UUID,
     warehouse_id: uuid.UUID,
+    request: Request,
     q: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
+    ensure_client_in_request_scope(request, client_id)
+    ensure_warehouse_in_request_scope(request, warehouse_id)
     stmt = select(Container).where(Container.client_id == client_id, Container.warehouse_id == warehouse_id)
     if q:
         like = f"%{q}%"
@@ -139,10 +196,17 @@ def list_containers(
 
 
 @router.patch("/containers/{container_id}", response_model=ContainerRead)
-def update_container(container_id: uuid.UUID, payload: ContainerUpdate, db: Session = Depends(get_db)):
+def update_container(
+    container_id: uuid.UUID,
+    payload: ContainerUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+):
     container = db.get(Container, container_id)
     if not container:
         raise HTTPException(status_code=404, detail="Короб не найден")
+    ensure_client_in_request_scope(request, container.client_id)
+    ensure_warehouse_in_request_scope(request, container.warehouse_id)
     if payload.name is not None:
         container.name = payload.name.strip() or container.barcode
     if payload.barcode is not None:
@@ -162,8 +226,11 @@ def container_contents(
     container_id: uuid.UUID,
     client_id: uuid.UUID,
     warehouse_id: uuid.UUID,
+    request: Request,
     db: Session = Depends(get_db),
 ):
+    ensure_client_in_request_scope(request, client_id)
+    ensure_warehouse_in_request_scope(request, warehouse_id)
     container = db.execute(select(Container).where(
         Container.id == container_id,
         Container.client_id == client_id,

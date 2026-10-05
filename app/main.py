@@ -71,6 +71,13 @@ from app.services.wb_sale_reservation_worker import start_wb_sale_reservation_wo
 from app.services.transit_stock import install_schema as install_transit_schema
 from app.services.fulfillment_platform import install_schema as install_fulfillment_platform_schema
 from app.services.tenant_host import request_host, resolve_tenant_host
+from app.services.tenant_scope import (
+    attach_scope_to_request,
+    is_tenant_isolated,
+    load_fulfillment_scope,
+    path_skips_scope,
+    validate_request_against_scope,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -205,6 +212,54 @@ async def single_profile_auth(request: Request, call_next):
     if wants_html:
         return RedirectResponse(url="/tsd/login" if path.startswith("/tsd") else "/login", status_code=303)
     return JSONResponse({"detail": "Требуется вход"}, status_code=401)
+
+
+@app.middleware("http")
+async def enforce_fulfillment_data_scope(request: Request, call_next):
+    """On tenant hosts, allow only warehouses/clients linked to that fulfillment.
+
+    Must run after resolve_fulfillment_tenant (registered before it so Starlette
+    LIFO executes resolve first). Apex / DEFAULT hosts are not isolated.
+    """
+    attach_scope_to_request(request, None)
+    path = request.url.path
+    if path_skips_scope(path) or path.startswith("/printing/agent/"):
+        return await call_next(request)
+    if not is_tenant_isolated(request):
+        return await call_next(request)
+
+    fulfillment_id = getattr(request.state, "fulfillment_id", None)
+    if not fulfillment_id:
+        return await call_next(request)
+
+    body = b""
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+        body = await request.body()
+
+        async def _replay():
+            return {"type": "http.request", "body": body, "more_body": False}
+
+        request = Request(request.scope, _replay)
+
+    generator = get_db()
+    db = next(generator)
+    try:
+        scope = load_fulfillment_scope(db, fulfillment_id)
+        attach_scope_to_request(request, scope)
+        try:
+            validate_request_against_scope(request, scope, body, db)
+        except HTTPException as exc:
+            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    except HTTPException as exc:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    except Exception as exc:
+        logging.getLogger(__name__).warning("fulfillment scope enforce failed: %s", exc)
+    finally:
+        try:
+            generator.close()
+        except Exception:
+            pass
+    return await call_next(request)
 
 
 @app.middleware("http")
