@@ -214,6 +214,28 @@
   <link rel="stylesheet" href="/static/r145f27.css?v=r145f28-activebox">
 </head>
 <body>
+<script>
+(function(){
+  try{
+    var q=new URLSearchParams(location.search);
+    if(q.get('embed')==='1'||q.get('embed')==='true'){
+      document.documentElement.classList.add('fc-embed');
+      document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('fc-embed');});
+    }
+  }catch(_){}
+})();
+</script>
+<style>
+/* ZIPLINE embed: hide FulfillCore chrome when ?embed=1 */
+html.fc-embed .sidebar,
+body.fc-embed .sidebar{display:none!important}
+html.fc-embed .app-shell,
+body.fc-embed .app-shell{display:block!important;min-height:100vh}
+html.fc-embed .main,
+body.fc-embed .main{margin-left:0!important;width:100%!important}
+html.fc-embed .topbar .user-box #logoutBtn,
+body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
+</style>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">

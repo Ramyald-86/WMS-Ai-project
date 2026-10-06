@@ -370,6 +370,15 @@ async function bootstrap(){
   // API liveness must not depend on optional commercial/account endpoints. 0.9.4.10
   // used Promise.all(/health, /commercial/session), so a missing/disabled commercial
   // module painted a perfectly healthy API as «API недоступен».
+  try{
+    const q=new URLSearchParams(location.search);
+    const deep=(q.get('page')||'').trim() || (location.hash||'').replace(/^#/, '').trim();
+    if(deep){state.activePage=deep;try{fcR20Remember('fc_active_page',deep);}catch(_){}}
+    if(q.get('embed')==='1'||q.get('embed')==='true'){
+      document.documentElement.classList.add('fc-embed');
+      document.body?.classList.add('fc-embed');
+    }
+  }catch(_){}
   let h=null,me=null;
   try{
     h=await api('/health',{timeoutMs:5000});
@@ -4707,7 +4716,16 @@ $('ozonCredentialSelect')?.addEventListener('change',async e=>{state.ozonCredent
   `;document.head.appendChild(style);
 })();
 
-bootstrap().then(()=>{window.FCTsdDesktopReady=true;window.dispatchEvent(new Event('fc:desktop-ready'));}).catch(e=>toast(e.message,true));
+bootstrap().then(()=>{
+  window.FCTsdDesktopReady=true;
+  window.dispatchEvent(new Event('fc:desktop-ready'));
+  try{
+    const q=new URLSearchParams(location.search);
+    const page=(q.get('page')||'').trim() || (location.hash||'').replace(/^#/, '').trim();
+    if(page && typeof go==='function') go(page);
+    else if(state.activePage && typeof go==='function') go(state.activePage);
+  }catch(_e){}
+}).catch(e=>toast(e.message,true));
 
 
 $('logoutBtn').addEventListener('click',async()=>{try{await api('/auth/logout',{method:'POST'});}catch(e){}location.href='/login';});

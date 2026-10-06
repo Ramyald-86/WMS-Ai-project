@@ -10,6 +10,7 @@ from pathlib import Path
 import anyio
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
@@ -62,6 +63,7 @@ from app.routers.r145f20_defect_bulk import router as r145f20_defect_bulk_router
 from app.routers.reliability import agent_router as reliability_agent_router, router as reliability_router
 from app.routers.platform_fulfillments import router as platform_fulfillments_router
 from app.routers.tenant import router as tenant_router
+from app.routers.fc_cabinet import router as fc_cabinet_router
 from app.services.client_location_guard import install_client_location_guard
 from app.services.db_pool_tuning import db_pool_status, tune_db_pool
 from app.services.runtime_reliability import background_lane_status, install_runtime_schema, normalize_station_code, station_token, verify_station_token
@@ -436,6 +438,7 @@ app.include_router(reliability_router)
 app.include_router(reliability_agent_router)
 app.include_router(tenant_router)
 app.include_router(platform_fulfillments_router)
+app.include_router(fc_cabinet_router)
 app.include_router(r145f50_receiving_router)
 app.include_router(r145f51_receiving_router)
 app.include_router(r145f52_receiving_router)
@@ -870,3 +873,15 @@ def fulfillment_platform_startup():
 # FC_R145F51_BROWSER_FIRST_RECEIVING
 
 # FC_R145F52_BROWSER_MASTER_RECOVERY_CARD
+
+# Browser consoles (ZIPLINE HTML) — keep outermost so OPTIONS preflight succeeds.
+_cors_origins = [o.strip() for o in (settings.cors_origins or "").split(",") if o.strip()]
+if _cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )

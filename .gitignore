@@ -79,3 +79,6 @@ app/downloads/
 # Локальные конфиги print agent (пример остаётся)
 print_agent/config.json
 print_agent/config.local.json
+
+# Отдельный фронтенд-репозиторий (не коммитить в FulfillCore)
+zipline-os-demo/

@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     platform_host_aliases: str = ""
     # off | soft | strict — see app.services.tenant_host
     tenant_host_mode: str = "soft"
+    # Comma-separated browser origins for ZIPLINE HTML consoles (credentials cookies).
+    cors_origins: str = (
+        "http://127.0.0.1:5500,http://localhost:5500,"
+        "http://127.0.0.1:8000,http://localhost:8000,"
+        "http://127.0.0.1:4173,http://localhost:4173,"
+        "null"
+    )
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
