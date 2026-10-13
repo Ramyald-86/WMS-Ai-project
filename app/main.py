@@ -219,16 +219,20 @@ async def single_profile_auth(request: Request, call_next):
             return await call_next(request)
 
         if principal == "fc":
+            from app.services.tenant_host import tenant_host_mode
+
             resolution = getattr(request.state, "tenant_resolution", None)
             host_fid = str(getattr(request.state, "fulfillment_id", "") or "")
             session_fid = str(session.get("fid") or "")
-            # FC sessions are valid only on their own fulfillment host.
-            if not resolution or resolution.kind not in {"subdomain", "custom_domain"}:
+            on_tenant_host = bool(resolution and resolution.kind in {"subdomain", "custom_domain"})
+            # Soft/staging apex (IP:port, no DNS yet): allow FC staff session on platform host.
+            soft_apex = (not on_tenant_host) and tenant_host_mode() == "soft"
+            if not on_tenant_host and not soft_apex:
                 return JSONResponse(
                     {"detail": "Сессия сотрудника фулфилмента не действует на основном домене", "code": "FC_SESSION_APEX"},
                     status_code=403,
                 )
-            if not session_fid or session_fid != host_fid:
+            if on_tenant_host and (not session_fid or session_fid != host_fid):
                 return JSONResponse(
                     {"detail": "Сессия принадлежит другому фулфилменту", "code": "FC_SESSION_MISMATCH"},
                     status_code=403,
@@ -442,6 +446,8 @@ app.include_router(fc_cabinet_router)
 app.include_router(r145f50_receiving_router)
 app.include_router(r145f51_receiving_router)
 app.include_router(r145f52_receiving_router)
+from app.routers.server_state import router as server_state_router
+app.include_router(server_state_router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -835,6 +841,29 @@ def r145f27_receiving_startup():
         db.rollback();raise
     finally:
         generator.close()
+
+
+@app.on_event("startup")
+def server_state_store_startup():
+    """Postgres SoT for pending WB / client intents / terminal drafts (was browser-only)."""
+    from app.services.server_state_store import install_schema
+
+    generator = get_db()
+    db = next(generator)
+    try:
+        install_schema(db)
+        print("FulfillCore server-state store schema: ready")
+    except Exception as exc:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        print(f"FulfillCore server-state store schema warning: {exc}")
+    finally:
+        try:
+            generator.close()
+        except Exception:
+            pass
 
 
 @app.on_event("startup")

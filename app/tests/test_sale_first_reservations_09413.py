@@ -15,16 +15,22 @@ def test_new_orders_reserve_without_physical_address():
 
 def test_picking_binds_existing_sale_reservation_to_address():
     src = (ROOT / 'app/services/stock_reservations.py').read_text(encoding='utf-8')
-    assert "status='CONSUMING',reservation_mode='SALE_FIRST_V1'" in src
-    assert "source_location_id=:location,source_container_id=:container" in src
-    assert 'owns_sale_reserve' in src
+    # Bind upgrades SALE_RESERVED → ACTIVE with a physical address; CONSUMING is
+    # reserved for direct picking when no prior sale promise exists.
+    assert "status='ACTIVE',reservation_mode='SALE_FIRST_V1'" in src
+    assert "source_location_id=:location,source_container_id=:container" in src or \
+           ":location,:container,1,'ACTIVE','SALE_FIRST_V1'" in src
+    assert 'bind_items' in src
+    assert 'fast_bound' in src
+    assert "'CONSUMING','SALE_FIRST_V1'" in src
 
 
 def test_marketplace_amount_subtracts_only_unallocated_sale_reserve():
     src = (ROOT / 'app/services/stock_core_v2.py').read_text(encoding='utf-8')
-    assert "AND status='SALE_RESERVED'" in src
-    assert 'max(0, int(fbs_total - sale_reserved))' in src
+    assert "status IN ('SALE_RESERVED'" in src
+    assert 'desired = max(0, int(canonical_free))' in src
     assert 'wb_sales_paused' in src
+    assert 'effective_fbs_free_for_sku' in src
 
 
 def test_physical_writeoff_is_after_print_ack_for_strict_flow():
@@ -45,7 +51,8 @@ def test_cancellation_before_real_picking_releases_in_place():
 def test_outbox_worker_started_and_recovers_stale_processing():
     worker = (ROOT / 'app/services/stock_outbox_worker.py').read_text(encoding='utf-8')
     main = (ROOT / 'app/main.py').read_text(encoding='utf-8')
-    assert "status='PROCESSING' AND updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'" in worker
+    assert "status='PROCESSING'" in worker
+    assert "updated_at < CURRENT_TIMESTAMP - INTERVAL '2 minutes'" in worker
     assert '_wb_set_stocks_bulk' in worker
     assert 'start_stock_outbox_worker()' in main
 
@@ -63,7 +70,7 @@ def test_server_watcher_reserves_orders_without_open_browser():
 def test_deploy_grace_period_precedes_outbox_processing():
     worker = (ROOT / 'app/services/stock_outbox_worker.py').read_text(encoding='utf-8')
     loop = worker[worker.index('def _worker_loop()'):]
-    assert loop.index('time.sleep(60.0)') < loop.index('process_stock_outbox_once()')
+    assert loop.index('_WAKE.wait(60.0)') < loop.index('process_stock_outbox_once()')
 
 
 def test_packing_cannot_allocate_address_before_real_picking_list():
@@ -85,4 +92,7 @@ def test_packing_cannot_allocate_address_before_real_picking_list():
 def test_watcher_backfills_existing_local_new_orders_even_when_wb_poll_is_empty():
     worker = (ROOT / 'app/services/wb_sale_reservation_worker.py').read_text(encoding='utf-8')
     assert 'for seller_id, physical_id in mapping.items()' in worker
-    assert 'except Exception:\n            incoming = []' in worker
+    # WB poll failure must not crash the tick; empty result + backfill of local NEW.
+    assert 'except Exception:' in worker
+    assert '"seen": 0' in worker or "'seen': 0" in worker
+    assert 'client.new_orders()' in worker

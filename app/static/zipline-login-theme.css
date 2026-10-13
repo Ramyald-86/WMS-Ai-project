@@ -1,0 +1,46 @@
+/* ZIPLINE theme for /login (ssdarold only) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+body{
+  background:
+    radial-gradient(circle at 16% 0,#6200EE22,transparent 34%),
+    radial-gradient(circle at 90% 100%,#00D4FF12,transparent 40%),
+    #0A0A0B !important;
+  color:#F5F7FB !important;
+  font-family:Inter,"Segoe UI",Arial,sans-serif !important;
+}
+.login-shell{
+  background:transparent !important;
+}
+.login-card{
+  background:linear-gradient(145deg,#17131F,#0D0F14) !important;
+  border:1px solid #5C3E9F !important;
+  border-radius:22px !important;
+  box-shadow:0 0 56px #6200EE1D, inset 0 1px 0 #FFFFFF08 !important;
+  color:#F5F7FB !important;
+}
+.brand-mark{
+  background:linear-gradient(145deg,#6200EE,#260061) !important;
+  box-shadow:0 0 30px #6200EE5C;
+}
+.eyebrow{color:#00D4FF !important;}
+h1{
+  font-family:"Space Grotesk",Inter,sans-serif !important;
+  letter-spacing:-.03em;
+  color:#F5F7FB !important;
+}
+p,label,.login-card>small{color:#9EA8B7 !important;}
+input{
+  background:#0B0D12 !important;
+  border:1px solid #2C3040 !important;
+  color:#F5F7FB !important;
+}
+input:focus{
+  border-color:#7A56CF !important;
+  box-shadow:0 0 0 3px rgba(98,0,238,.18) !important;
+}
+button{
+  background:linear-gradient(120deg,#4B00C9,#6200EE 48%,#1478FF) !important;
+  box-shadow:0 0 20px #6200EE2B;
+}
+.error{color:#FF98A7 !important;}

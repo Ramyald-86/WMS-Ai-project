@@ -1197,7 +1197,7 @@ def readiness_report(db: Session, fc: Fulfillment) -> ReadinessReport:
             key="admin_user",
             ok=bool(admins),
             required=True,
-            message=f"Активных FC_ADMIN: {len(admins)}" if admins else "Создайте хотя бы одного FC_ADMIN",
+            message=f"Руководителей склада: {len(admins)}" if admins else "Добавьте хотя бы одного руководителя склада",
         ),
         ReadinessCheck(
             key="primary_warehouse",
@@ -1211,7 +1211,7 @@ def readiness_report(db: Session, fc: Fulfillment) -> ReadinessReport:
             key="print_token",
             ok=bool(fc.encrypted_print_agent_token),
             required=True,
-            message="Print Agent token создан" if fc.encrypted_print_agent_token else "Нет токена печати",
+            message="Ключ для агента печати создан" if fc.encrypted_print_agent_token else "Нужно выпустить ключ для агента печати",
         ),
         ReadinessCheck(
             key="print_station",
@@ -1219,23 +1219,23 @@ def readiness_report(db: Session, fc: Fulfillment) -> ReadinessReport:
             required=False,
             message=f"Активных станций печати: {len(stations)}"
             if stations
-            else "Рекомендуется добавить PACK-станцию",
+            else "Рекомендуется добавить станцию печати",
         ),
         ReadinessCheck(
             key="pilot_client_marketplace",
             ok=bool(pilot_with_creds) or bool(clients),
             required=False,
             message=(
-                "Есть пилотный клиент с marketplace credential"
+                "Есть пробный клиент с подключением маркетплейса"
                 if pilot_with_creds
-                else ("Клиенты есть, marketplace можно подключить позже" if clients else "Клиент ещё не добавлен")
+                else ("Клиенты есть, маркетплейс можно подключить позже" if clients else "Клиент ещё не добавлен")
             ),
         ),
         ReadinessCheck(
             key="feature_profile",
             ok=bool((fc.feature_profile or {}).get("template")),
             required=True,
-            message="Профиль функций задан" if (fc.feature_profile or {}).get("template") else "Нет feature profile",
+            message="Настройки функций заданы" if (fc.feature_profile or {}).get("template") else "Не заданы настройки функций",
         ),
         ReadinessCheck(
             key="not_archived",

@@ -1,0 +1,116 @@
+/* ZIPLINE theme for client portal (ssdarold only) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root{
+  font-family:Inter,"Segoe UI",Arial,sans-serif !important;
+  color:#F5F7FB !important;
+  background:#0A0A0B !important;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 16% 0,#6200EE15,transparent 28%),
+    #0A0A0B !important;
+  color:#F5F7FB !important;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
+  background-size:34px 34px;
+}
+body > *{position:relative; z-index:1;}
+
+.portal-head{
+  background:rgba(7,7,9,.97) !important;
+  border-bottom:1px solid #1C1E27;
+  color:#fff !important;
+  backdrop-filter:blur(18px);
+}
+.portal-head b{
+  font-family:"Space Grotesk",Inter,sans-serif;
+  letter-spacing:-.02em;
+}
+.portal-head span{color:#9EA8B7 !important;}
+.portal-head button,.tabs button.active,.login-card button{
+  background:linear-gradient(120deg,#4B00C9,#6200EE 48%,#1478FF) !important;
+  border:1px solid #9575FF88 !important;
+  color:#fff !important;
+  box-shadow:0 0 20px #6200EE2B;
+}
+.tabs button,.secondary{
+  background:rgba(255,255,255,.03) !important;
+  color:#E4EDFC !important;
+  border:1px solid #35415A !important;
+}
+.secondary{background:rgba(255,255,255,.03) !important;}
+
+.hero,.tab,.login-card,.place-card,.receipt-summary{
+  background:linear-gradient(180deg,rgba(24,26,33,.92),rgba(13,14,19,.94)) !important;
+  border:1px solid #252936 !important;
+  box-shadow:inset 0 1px 0 #FFFFFF06,0 18px 50px #0005 !important;
+  color:#F5F7FB !important;
+}
+.hero h1,.login-card h1{
+  font-family:"Space Grotesk",Inter,sans-serif;
+  letter-spacing:-.02em;
+  color:#F5F7FB !important;
+}
+.hero p,.login-card p,td small,.receipt-summary span,.receipt-summary small,
+.places-loading,.places-empty,.place-card small{color:#9EA8B7 !important;}
+
+.toolbar input,.toolbar select,.login-card input{
+  background:#0B0D12 !important;
+  border:1px solid #2C3040 !important;
+  color:#F5F7FB !important;
+}
+.toolbar input:focus,.toolbar select:focus,.login-card input:focus{
+  border-color:#7A56CF !important;
+  box-shadow:0 0 0 3px rgba(98,0,238,.18);
+}
+
+th{
+  background:#12141A !important;
+  color:#7F8998 !important;
+  border-bottom:1px solid #222630 !important;
+}
+td{
+  border-bottom:1px solid #222630 !important;
+  color:#F5F7FB !important;
+}
+tr:hover td{background:rgba(98,0,238,.05);}
+
+.portal-login{
+  background:
+    radial-gradient(circle at 16% 0,#6200EE22,transparent 34%),
+    radial-gradient(circle at 90% 100%,#00D4FF12,transparent 40%),
+    #0A0A0B !important;
+}
+.login-card{
+  border-color:#5C3E9F !important;
+  border-radius:22px !important;
+  box-shadow:0 0 56px #6200EE1D, inset 0 1px 0 #FFFFFF08 !important;
+}
+.login-card .brand{
+  background:linear-gradient(145deg,#6200EE,#260061) !important;
+  box-shadow:0 0 30px #6200EE5C;
+}
+.msg.error{color:#FF98A7 !important;}
+
+.place-toggle{
+  border:1px solid #7651D75C !important;
+  background:rgba(98,0,238,.14) !important;
+  color:#BBA7FF !important;
+}
+.place-toggle.active{
+  background:linear-gradient(120deg,#4B00C9,#6200EE 48%,#1478FF) !important;
+  color:#fff !important;
+}
+.places-row td{background:rgba(13,14,19,.6) !important;}
+.portal-tag{
+  background:rgba(98,0,238,.18) !important;
+  color:#BBA7FF !important;
+}

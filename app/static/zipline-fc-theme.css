@@ -1,0 +1,296 @@
+/* ZIPLINE theme overlay for FulfillCore static UI (ssdarold only).
+   Loaded after app.css / module CSS. Does not change production /opt/fulfillcore. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root{
+  --bg:#0A0A0B;
+  --panel:rgba(24,26,33,.92);
+  --panel-2:rgba(18,19,24,.96);
+  --text:#F5F7FB;
+  --muted:#9EA8B7;
+  --line:#252936;
+  --nav:#070709;
+  --accent:#6200EE;
+  --accent-soft:rgba(98,0,238,.18);
+  --green:#00FF66;
+  --red:#FF4D67;
+  --cyan:#00D4FF;
+  --amber:#FF9900;
+  --shadow:inset 0 1px 0 #FFFFFF06,0 18px 50px #0005;
+  --zip-radius:14px;
+  color-scheme:dark;
+}
+
+html,body{
+  background:
+    radial-gradient(circle at 16% 0,#6200EE15,transparent 28%),
+    #0A0A0B !important;
+  color:var(--text) !important;
+  font-family:Inter,"Segoe UI",Arial,sans-serif !important;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
+  background-size:34px 34px;
+}
+body > *{position:relative; z-index:1;}
+
+h1,h2,h3,.topbar h1,.panel h2,.panel h3,.brand strong{
+  font-family:"Space Grotesk",Inter,sans-serif;
+  letter-spacing:-.02em;
+}
+
+/* Shell */
+.app-shell{background:transparent;}
+.sidebar{
+  background:rgba(7,7,9,.97) !important;
+  border-right:1px solid #1C1E27;
+  backdrop-filter:blur(22px);
+}
+.brand-mark{
+  background:linear-gradient(145deg,#6200EE,#260061) !important;
+  box-shadow:0 0 30px #6200EE5C;
+  color:#fff !important;
+}
+.brand span,.sidebar-footer{color:var(--muted) !important;}
+.nav button{color:#AEB7C8 !important; border:1px solid transparent; border-radius:8px;}
+.nav button:hover,.nav button.active{
+  background:linear-gradient(90deg,#6200EE30,#00D4FF0C) !important;
+  color:#fff !important;
+  border-color:#7651D75C;
+  box-shadow:inset 3px 0 0 #8B62FF;
+}
+.nav-group>small{
+  color:#7F8998 !important;
+  letter-spacing:.09em;
+}
+.status-dot.ok{background:var(--green) !important; box-shadow:0 0 10px rgba(0,255,102,.35);}
+
+.main{background:transparent;}
+.topbar{
+  background:rgba(7,7,9,.92) !important;
+  border-bottom:1px solid #1C1E27 !important;
+  backdrop-filter:blur(16px);
+}
+.eyebrow,.kicker{color:var(--cyan) !important;}
+.topbar h1{color:var(--text) !important;}
+.context-selectors label{color:var(--muted) !important;}
+.icon-btn,.user-box span{
+  background:rgba(255,255,255,.03) !important;
+  border-color:#2C3040 !important;
+  color:var(--text) !important;
+}
+.user-box span{background:transparent !important; border:0 !important;}
+
+.page{color:var(--text);}
+
+/* Cards / panels / stats */
+.stat-card,.panel,.card,.modal-card,.columns-panel,.result-card,
+.location-card,.product-card,.product-catalog-card,.preview-stats>div,
+.wb-orders-table,.wb-orders-top-scroll,.credential-row,.supply-row{
+  background:linear-gradient(180deg,rgba(24,26,33,.92),rgba(13,14,19,.94)) !important;
+  border:1px solid #252936 !important;
+  box-shadow:var(--shadow) !important;
+  color:var(--text) !important;
+}
+.stat-card span,.stat-card small,.panel-head .muted,.muted,
+.quick-actions small,.activity small,.help-panel p,.help-panel ol,
+.preview-stats small,.credential-row small,.supply-row small{color:var(--muted) !important;}
+.stat-card strong,.panel h2,.panel h3,.quick-actions strong{color:var(--text) !important;}
+
+.quick-actions button{
+  background:rgba(255,255,255,.03) !important;
+  border:1px solid #2C3040 !important;
+  color:var(--text) !important;
+}
+.quick-actions button:hover{
+  border-color:#7A56CF !important;
+  background:rgba(98,0,238,.12) !important;
+}
+.quick-actions b{
+  background:rgba(98,0,238,.18) !important;
+  color:#BBA7FF !important;
+}
+
+/* Forms */
+input,select,textarea{
+  background:#0B0D12 !important;
+  border:1px solid #2C3040 !important;
+  color:var(--text) !important;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:#7A56CF !important;
+  box-shadow:0 0 0 3px rgba(98,0,238,.18) !important;
+}
+input:disabled,select:disabled,textarea:disabled{
+  background:#15171E !important;
+  color:#6B7280 !important;
+}
+.form-panel label,.compact-form label,.print-settings label,
+.wb-filter-grid label,.scan-step em{color:var(--muted) !important;}
+.scan-step>span{
+  background:rgba(98,0,238,.18) !important;
+  color:#BBA7FF !important;
+}
+
+/* Buttons */
+.primary,button.primary,.tabs .btn.primary,.status-tabs button.active{
+  background:linear-gradient(120deg,#4B00C9,#6200EE 48%,#1478FF) !important;
+  border:1px solid #9575FF88 !important;
+  color:#fff !important;
+  box-shadow:0 0 20px #6200EE2B !important;
+}
+.secondary,button.secondary,.link-btn{
+  background:rgba(255,255,255,.03) !important;
+  border:1px solid #35415A !important;
+  color:#E4EDFC !important;
+}
+.secondary:hover,button.secondary:hover{
+  border-color:#558AC5 !important;
+  background:rgba(75,155,255,.10) !important;
+}
+.danger,button.danger{
+  background:rgba(255,77,103,.12) !important;
+  color:#FF98A7 !important;
+  border:1px solid #FF4D6740 !important;
+}
+.link-btn{background:transparent !important; border:0 !important; color:var(--cyan) !important;}
+
+/* Tables */
+.table-wrap table,.wb-orders-table table{color:var(--text);}
+.table-wrap th,.wb-orders-table th{
+  background:#12141A !important;
+  color:#7F8998 !important;
+  border-bottom:1px solid #222630 !important;
+}
+.table-wrap td,.wb-orders-table td{
+  border-bottom:1px solid #222630 !important;
+  color:var(--text) !important;
+}
+.table-wrap tr:hover td,.wb-orders-table tr:hover td{
+  background:rgba(98,0,238,.06) !important;
+}
+.order-link{color:var(--cyan) !important;}
+.mono-wrap,.chz-code,.barcode-row small,.pallet-box-code{
+  font-family:"JetBrains Mono",ui-monospace,Consolas,monospace !important;
+  color:#D4DEF0 !important;
+}
+
+/* Badges / pills / status */
+.badge{background:rgba(0,255,102,.08) !important; color:#71FFA5 !important;}
+.badge.neutral,.tag,.pill,.location-meta span{
+  background:rgba(255,255,255,.04) !important;
+  color:#AEB7C8 !important;
+  border:1px solid #2C3040;
+}
+.good-pill,.status-collected{background:rgba(0,255,102,.10) !important; color:#71FFA5 !important;}
+.bad-pill,.status-cancelled{background:rgba(255,77,103,.12) !important; color:#FF98A7 !important;}
+.status-new{background:rgba(98,0,238,.15) !important; color:#BBA7FF !important;}
+.status-picking{background:rgba(255,153,0,.12) !important; color:#FFC261 !important;}
+.status-sent{background:rgba(0,212,255,.10) !important; color:#8EDDFF !important;}
+.good-text,.chz-ok,.scan-step em.good{color:var(--green) !important;}
+.bad-text,.scan-step em.bad{color:var(--red) !important;}
+.chz-wait{color:var(--amber) !important;}
+
+.status-tabs button{
+  background:rgba(255,255,255,.03) !important;
+  border:1px solid #2C3040 !important;
+  color:var(--muted) !important;
+}
+
+/* Modals / toast */
+.modal-backdrop{background:rgba(5,6,10,.78) !important;}
+.modal-card{
+  border-color:#5C3E9F !important;
+  border-radius:18px !important;
+  box-shadow:0 0 56px #6200EE1D, inset 0 1px 0 #FFFFFF08 !important;
+}
+.modal-close{
+  background:#1A1D26 !important;
+  color:var(--text) !important;
+}
+.toast{
+  background:#12141A !important;
+  border:1px solid #252936;
+  color:#fff !important;
+}
+.toast.error{background:#2B1216 !important; border-color:#FF4D6740;}
+
+.success-box{
+  background:rgba(0,255,102,.08) !important;
+  color:#71FFA5 !important;
+  border:1px solid #00FF6638 !important;
+}
+.error-box{
+  background:rgba(255,77,103,.10) !important;
+  color:#FF98A7 !important;
+  border:1px solid #FF4D6740 !important;
+}
+
+/* Product / inventory surfaces often hardcode white */
+.product-card,.product-catalog-card,.product-image-button,
+.product-main-photo,.product-placeholder,.product-thumb,
+.inventory-thumb,.order-detail-grid>div,.order-chz-box,
+.print-settings,.wb-pack-active,.activity,
+#page-palletreceive .pallet-card,
+#page-palletreceive .pallet-card-head,
+#page-palletreceive .pallet-summary>div,
+#page-palletreceive .pallet-number{
+  background:linear-gradient(180deg,rgba(24,26,33,.9),rgba(13,14,19,.94)) !important;
+  border-color:#252936 !important;
+  color:var(--text) !important;
+}
+#page-palletreceive .pallet-card.current{
+  border-color:#8B62FF !important;
+  box-shadow:0 0 0 2px rgba(98,0,238,.25) !important;
+}
+#page-palletreceive .pallet-card.current .pallet-card-head{
+  background:rgba(98,0,238,.14) !important;
+}
+#page-palletreceive .pallet-progress{background:#1A1D26 !important; color:var(--text);}
+#page-palletreceive .pallet-progress.full{background:rgba(0,255,102,.12) !important; color:#71FFA5 !important;}
+#page-palletreceive .pallet-box-row{border-top-color:#222630 !important;}
+
+.product-title-link,.inventory-title-link{color:var(--text) !important;}
+.product-title-link:hover,.inventory-title-link:hover{color:var(--cyan) !important;}
+.product-counters>div,.wb-orders-top-scroll{background:#12141A !important;}
+.wb-pagination{background:rgba(13,14,19,.96) !important; border-top-color:#222630 !important; color:var(--muted) !important;}
+
+/* Finance dialogs / overlays that use light panels */
+dialog, .fc-finance-dialog, .fc-finance-category-list,
+.fc-finance-dialog-head, .fc-finance-dialog-footer{
+  background:#12141A !important;
+  color:var(--text) !important;
+  border-color:#252936 !important;
+}
+
+/* Shell / former embed: ZIPLINE chrome */
+html.fc-embed .topbar,
+html.fc-zip-shell .topbar{
+  background:rgba(7,7,9,.88) !important;
+}
+html.fc-embed .page,
+html.fc-zip-shell .page{padding-top:18px;}
+
+html.fc-zip-shell .brand strong{font-family:"Space Grotesk",Inter,sans-serif;}
+html.fc-zip-shell .topbar h1{
+  font-family:"Space Grotesk",Inter,sans-serif;
+  letter-spacing:-.02em;
+}
+
+/* Hardcoded light leftovers in inline/module CSS */
+[style*="background:#fff"],
+[style*="background: #fff"],
+[style*="background:#ffffff"],
+[style*="background:#f8fafc"],
+[style*="background:#f7f8fb"]{
+  /* cannot override inline reliably; covered by class rules above */
+}
+
+/* Scrollbars */
+*{scrollbar-width:thin; scrollbar-color:#3A3F4E transparent;}
+*::-webkit-scrollbar{width:10px; height:10px;}
+*::-webkit-scrollbar-thumb{background:#3A3F4E; border-radius:999px;}
+*::-webkit-scrollbar-track{background:transparent;}

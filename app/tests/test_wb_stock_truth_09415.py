@@ -58,6 +58,6 @@ def test_pause_can_target_wb_card_even_when_local_physical_is_zero():
 def test_manual_publish_uses_sellable_outbox_not_physical_total():
     src = (ROOT / 'app/routers/receiving.py').read_text(encoding='utf-8')
     fn = src[src.index('@router.post("/publish-wb")'):src.index('@router.', src.index('@router.post("/publish-wb")') + 20)]
-    assert 'enqueue_wb_stock_for_sku' in fn
+    assert '_enqueue_wb_absolute_target' in fn
     assert '_sync_wb_stock' not in fn
-    assert 'status":"QUEUED"' in fn
+    assert 'status": "QUEUED"' in fn

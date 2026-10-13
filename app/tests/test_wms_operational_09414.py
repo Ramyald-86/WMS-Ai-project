@@ -43,7 +43,8 @@ def test_wb_pause_is_durable_and_outbox_forces_zero():
     core = (ROOT / 'app/services/stock_core_v2.py').read_text(encoding='utf-8')
     assert 'def wb_sales_paused' in core
     assert 'def set_wb_sales_paused' in core
-    assert 'desired = 0 if paused else max(0, int(fbs_total - sale_reserved))' in core
+    assert 'desired = max(0, int(canonical_free))' in core
+    assert 'desired = 0 if (provider == "WB" and wb_sales_paused(' in core
     migration = (ROOT / 'alembic/versions/0011_wb_sales_pause_fast_scan.py').read_text(encoding='utf-8')
     assert 'CREATE TABLE IF NOT EXISTS fc_wb_sales_pauses' in migration
     assert 'ix_marketplace_orders_barcodes_gin' in migration
@@ -72,8 +73,9 @@ def test_js_exposes_safe_wb_sales_controls():
     js = (ROOT / 'app/static/app.js').read_text(encoding='utf-8')
     assert 'Остановить продажи WB' in js
     assert 'Возобновить продажи WB' in js
-    assert 'Удалить свободные + стоп WB' in js
-    assert "runInventoryBulkAction('DELETE_FREE_AND_PAUSE')" in js
+    assert 'Удалить выбранные из FBS' in js
+    assert 'DELETE_FBS_KEEP_RESERVES' in js
+    assert 'changeFbsInventory' in js
     assert "runInventoryBulkAction('PAUSE_WB')" in js
     assert "runInventoryBulkAction('RESUME_WB')" in js
     ast.parse((ROOT / 'app/routers/receiving.py').read_text(encoding='utf-8'))

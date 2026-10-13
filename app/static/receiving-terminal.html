@@ -24,7 +24,7 @@ button{border:0;border-radius:8px;padding:9px 12px;background:var(--blue2);color
 @media(max-width:900px){.grid,.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}header{position:static}.scan{font-size:19px}}
 @media print{header,.no-print{display:none!important}body{background:#fff}main{max-width:none;padding:0}.panel{box-shadow:none;border:0}.table-wrap{overflow:visible}table{min-width:0;font-size:10px}th{position:static}}
 </style>
-<link rel="stylesheet" href="/static/workflow.css?v=r66"></head>
+<link rel="stylesheet" href="/static/workflow.css?v=r66"><link rel="stylesheet" href="/static/zipline-workflow-theme.css?v=zip2"><link rel="stylesheet" href="/static/zipline-fc-theme.css?v=zip2"></head>
 <body>
 <header>
   <div><h1>Приёмка склада</h1><small>Терминал WMS r64 · Excel · голос · ручной адрес · FBS/FBO · база товаров · QR коробов / ШК товара</small></div>
@@ -1644,5 +1644,7 @@ if(new URL(location.href).searchParams.get('selftest')==='1'){
 }
 })();
 </script>
-<script src="/static/workflow-common.js?v=r66"></script><script src="/static/terminal-wms.js?v=r66"></script></body>
+<script src="/static/workflow-common.js?v=r66"></script><script src="/static/terminal-wms.js?v=r66"></script>
+<script src="/static/zipline-shell.js?v=zip2"></script>
+<script src="/static/zipline-server-store.js?v=zip3"></script></body>
 </html>

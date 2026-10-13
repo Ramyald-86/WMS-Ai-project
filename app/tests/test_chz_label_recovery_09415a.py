@@ -29,7 +29,7 @@ class ChzLabelRecovery09415aTests(unittest.TestCase):
 
     def test_python_and_version_are_valid(self) -> None:
         ast.parse(MAIN.read_text(encoding="utf-8"))
-        self.assertIn('version="0.9.4.15a"', MAIN.read_text(encoding="utf-8"))
+        self.assertIn('version="0.9.4.15g5a8k9r145f54"', MAIN.read_text(encoding="utf-8"))
 
     def test_repeated_409_keeps_proven_0949e_pipeline(self) -> None:
         worker = self.function_source("_schedule_strict_pack_gate")
@@ -78,12 +78,13 @@ class ChzLabelRecovery09415aTests(unittest.TestCase):
         self.assertIn('product_scan_present', endpoint)
 
     def test_completed_print_gate_cannot_fall_back_to_picking(self) -> None:
-        node = next(
+        names = {"_compute_local_status", "_picking_has_chz_and_label"}
+        nodes = [
             item
             for item in self.tree.body
-            if isinstance(item, ast.FunctionDef) and item.name == "_compute_local_status"
-        )
-        module = ast.Module(body=[node], type_ignores=[])
+            if isinstance(item, ast.FunctionDef) and item.name in names
+        ]
+        module = ast.Module(body=nodes, type_ignores=[])
         ast.fix_missing_locations(module)
         namespace: dict[str, Any] = {
             "MarketplaceOrder": Any,

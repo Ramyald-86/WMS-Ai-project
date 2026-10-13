@@ -217,22 +217,27 @@
 <script>
 (function(){
   try{
+    document.documentElement.classList.add('fc-zip-shell','fc-embed');
+    document.addEventListener('DOMContentLoaded',function(){
+      document.body.classList.add('fc-zip-shell','fc-embed');
+    });
+    // Deep-link before app-r145f39.js reads fc_active_page
     var q=new URLSearchParams(location.search);
-    if(q.get('embed')==='1'||q.get('embed')==='true'){
-      document.documentElement.classList.add('fc-embed');
-      document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('fc-embed');});
-    }
+    var deep=(q.get('page')||'').trim()||(location.hash||'').replace(/^#/,'').trim();
+    if(deep){try{localStorage.setItem('fc_active_page',deep);}catch(_){}}
   }catch(_){}
 })();
 </script>
 <style>
-/* ZIPLINE embed: hide FulfillCore chrome when ?embed=1 */
-html.fc-embed .sidebar,
-body.fc-embed .sidebar{display:none!important}
+/* ZIPLINE shell: native FC sidebar hidden — ZIPLINE nav injected by zipline-shell.js */
+html.fc-zip-shell .sidebar:not(.zip-shell-side),
+body.fc-zip-shell .sidebar:not(.zip-shell-side),
+html.fc-embed .sidebar:not(.zip-shell-side),
+body.fc-embed .sidebar:not(.zip-shell-side){display:none!important}
+html.fc-zip-shell .app-shell,
+body.fc-zip-shell .app-shell,
 html.fc-embed .app-shell,
 body.fc-embed .app-shell{display:block!important;min-height:100vh}
-html.fc-embed .main,
-body.fc-embed .main{margin-left:0!important;width:100%!important}
 html.fc-embed .topbar .user-box #logoutBtn,
 body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
 </style>
@@ -885,6 +890,7 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
   <script src="/static/r145f25-core.js?v=r145f44"></script>
   <script src="/static/r145f24-ui.js?v=r145f24"></script>
   <link rel="stylesheet" href="/static/r145f26.css?v=r145f26"/>
+  <link rel="stylesheet" href="/static/zipline-fc-theme.css?v=zip2"/>
   <script src="/static/r145f26-draft-store.js?v=r145f26"></script>
   <script src="/static/r145f26-cards.js?v=r145f26"></script>
   <script src="/static/r145f32-queue.js?v=r145f32"></script>
@@ -902,5 +908,8 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
   <script src="/static/r145f42-receiving-stable.js?v=r145f52" data-marker="FC_R145F42_RECEIVING_NONBLOCK_MAIN_DEFAULT"></script>
   <script src="/static/r145f39-controls.js?v=r145f39"></script>
 <script src="/static/r145f54-browser-receiving.js?v=r145f54"></script>
+<script src="/static/zipline-embed.js?v=zip2"></script>
+<script src="/static/zipline-shell.js?v=zip2"></script>
+<script src="/static/zipline-server-store.js?v=zip3"></script>
 </body>
 </html>

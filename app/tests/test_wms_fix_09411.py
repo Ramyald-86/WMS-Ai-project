@@ -30,8 +30,9 @@ def test_manual_receiving_verifies_exact_stock_bucket():
 def test_manual_receiving_rotates_idempotency_and_rejects_mismatched_retry():
     js=(ROOT/'app/static/app.js').read_text(encoding='utf-8')
     py=(ROOT/'app/routers/receiving.py').read_text(encoding='utf-8')
-    assert 'saveManualReceivingDraft({id:uid(),rows:remainingRows})' in js
-    assert 'saveManualReceivingDraft({id:uid(),rows:remaining})' in js
+    # After server ACK the browser rotates via FC26 + server draft, not local-only save.
+    assert 'FC26DraftStore.put(manualReceivingDraftKey(),newManualReceivingDraft())' in js
+    assert 'fc27EnsureServerDraft' in js
     assert 'requested_signature != existing_signature' in py
     assert 'Ключ этой приёмки уже использован для другого состава товара' in py
 
