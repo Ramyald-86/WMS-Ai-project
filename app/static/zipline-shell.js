@@ -6,6 +6,32 @@
   var LIVE_LOGIN = "/zipline/core/ZIPLINE_OS_LIVE.html";
   var HUB = "/zipline/";
   var SIDEBAR_W = 264;
+  var THEME_KEY = "zipline_theme";
+
+  function readTheme() {
+    try {
+      var t = localStorage.getItem(THEME_KEY);
+      if (t === "light" || t === "dark") return t;
+    } catch (_) {}
+    return "dark";
+  }
+
+  function applyTheme(theme) {
+    theme = theme === "light" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (_) {}
+    var buttons = document.querySelectorAll("[data-theme-set]");
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      var on = btn.getAttribute("data-theme-set") === theme;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+  }
+
+  applyTheme(readTheme());
 
   function qs(name) {
     try {
@@ -121,6 +147,16 @@
       "box-shadow:inset 3px 0 0 #8B62FF;}" +
       ".zip-shell-side .zip-nav button.soon{opacity:.45;cursor:default;}" +
       ".zip-shell-side .zip-foot{padding:12px 14px 16px;border-top:1px solid #1C1E27;}" +
+      ".zip-shell-side .zip-theme-label{font-size:10px;font-weight:800;letter-spacing:.09em;" +
+      "color:#7F8998;text-transform:uppercase;margin:0 0 8px;}" +
+      ".zip-shell-side .zip-theme{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}" +
+      ".zip-shell-side .zip-theme button{display:grid;place-items:center;min-height:40px;" +
+      "border-radius:9px;padding:8px;border:1px solid #2C3040;background:rgba(255,255,255,.03);" +
+      "color:#AEB7C8;cursor:pointer;}" +
+      ".zip-shell-side .zip-theme button svg{width:18px;height:18px;display:block;}" +
+      ".zip-shell-side .zip-theme button:hover{border-color:#7651D75C;color:#fff;}" +
+      ".zip-shell-side .zip-theme button.active{background:linear-gradient(120deg,#4B00C9,#6200EE 48%,#1478FF);" +
+      "border-color:transparent;color:#fff;box-shadow:0 0 16px #6200EE2B;}" +
       ".zip-shell-side .zip-who{font-size:12px;color:#9EA8B7;margin-bottom:8px;word-break:break-all;}" +
       ".zip-shell-side .zip-actions{display:flex;gap:8px;flex-wrap:wrap;}" +
       ".zip-shell-side .zip-actions a,.zip-shell-side .zip-actions button{" +
@@ -130,6 +166,34 @@
       "border-color:transparent;color:#fff;}" +
       ".zip-shell-burger{display:none;position:fixed;top:10px;left:10px;z-index:10060;" +
       "border:1px solid #2C3040;background:#12141A;color:#F5F7FB;border-radius:8px;padding:8px 10px;cursor:pointer;}" +
+      "html[data-theme=light] .zip-shell-side," +
+      "html[data-theme=light] aside.sidebar.zip-shell-side{" +
+      "background:#ffffff!important;border-right:1px solid #e6eaf1!important;color:#172033!important;" +
+      "backdrop-filter:none!important;}" +
+      "html[data-theme=light] .zip-shell-side a.zip-brand{border-bottom-color:#e6eaf1!important;color:#172033!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-brand strong{color:#172033!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-brand span," +
+      "html[data-theme=light] .zip-shell-side .zip-group-label," +
+      "html[data-theme=light] .zip-shell-side .zip-theme-label," +
+      "html[data-theme=light] .zip-shell-side .zip-who{color:#748097!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-nav button{color:#5b6474!important;background:transparent!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-nav button:hover," +
+      "html[data-theme=light] .zip-shell-side .zip-nav button.active{" +
+      "background:linear-gradient(90deg,#eef2ff,#f0f9ff)!important;color:#312e81!important;" +
+      "border-color:#c7d2fe!important;box-shadow:inset 3px 0 0 #6366f1!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-foot{border-top-color:#e6eaf1!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-theme button{" +
+      "border-color:#dfe4ec!important;background:#f8fafc!important;color:#475569!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-theme button:hover{" +
+      "border-color:#a5b4fc!important;color:#312e81!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-theme button.active{" +
+      "background:linear-gradient(120deg,#4B00C9,#6200EE 48%,#1478FF)!important;" +
+      "border-color:transparent!important;color:#fff!important;}" +
+      "html[data-theme=light] .zip-shell-side .zip-actions a," +
+      "html[data-theme=light] .zip-shell-side .zip-actions button:not(.primary){" +
+      "border-color:#dfe4ec!important;color:#475569!important;background:transparent!important;}" +
+      "html[data-theme=light] .zip-shell-burger{" +
+      "border-color:#dfe4ec!important;background:#fff!important;color:#172033!important;}" +
       "@media(max-width:900px){" +
       ".zip-shell-burger{display:block;}" +
       ".zip-shell-side{transform:translateX(-105%);transition:transform .2s ease;}" +
@@ -256,7 +320,19 @@
       '<div class="zip-mark">Z</div>' +
       "<div><strong>ZIPLINE OS</strong><span>AI-платформа фулфилмента</span></div></a>" +
       '<nav class="zip-nav" id="zip-shell-nav"></nav>' +
-      '<div class="zip-foot"><div class="zip-who" id="zip-shell-who">—</div>' +
+      '<div class="zip-foot">' +
+      '<div class="zip-theme-label">Цвет темы</div>' +
+      '<div class="zip-theme" role="group" aria-label="Цвет темы">' +
+      '<button type="button" data-theme-set="dark" title="Тёмная" aria-label="Тёмная тема" aria-pressed="false">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7 7 0 1 0 21 14.5z"/></svg></button>' +
+      '<button type="button" data-theme-set="light" title="Светлая" aria-label="Светлая тема" aria-pressed="false">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="4"/>' +
+      '<path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' +
+      "</svg></button>" +
+      "</div>" +
+      '<div class="zip-who" id="zip-shell-who">—</div>' +
       '<div class="zip-actions">' +
       '<a href="' +
       HUB +
@@ -268,6 +344,14 @@
     burger.addEventListener("click", function () {
       side.classList.toggle("open");
     });
+
+    var themeBtns = side.querySelectorAll("[data-theme-set]");
+    for (var ti = 0; ti < themeBtns.length; ti++) {
+      themeBtns[ti].addEventListener("click", function (ev) {
+        applyTheme(ev.currentTarget.getAttribute("data-theme-set"));
+      });
+    }
+    applyTheme(readTheme());
 
     var activeId = modulesApi ? findActive(modulesApi) : "";
     if (modulesApi) renderNav(document.getElementById("zip-shell-nav"), modulesApi, activeId);

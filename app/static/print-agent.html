@@ -73,5 +73,5 @@
     toggle.addEventListener('click',()=>{const show=token.type==='password';token.type=show?'text':'password';toggle.textContent=show?'Скрыть':'Показать';});
     copy.addEventListener('click',async()=>{if(!token.value)return;try{await navigator.clipboard.writeText(token.value);}catch(_){token.type='text';token.select();document.execCommand('copy');token.type='password';}message.textContent='Токен скопирован.';});
   </script>
-<script src="/static/zipline-shell.js?v=zip2"></script></body>
+<script src="/static/zipline-shell.js?v=zip5"></script></body>
 </html>

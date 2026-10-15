@@ -56,3 +56,68 @@ dialog .wf-dialog-foot{background:#12141A !important;}
 iframe.wf-terminal{background:#0A0A0B !important; border:1px solid #252936 !important;}
 .wf-steps span:before{background:rgba(98,0,238,.2) !important; color:#BBA7FF !important;}
 .wf-banner{border-color:#8B62FF !important;}
+
+/* Light theme */
+html[data-theme="light"]{
+  color-scheme:light;
+  color:#172033 !important;
+  background:#f5f7fb !important;
+}
+html[data-theme="light"] body{
+  background:#f5f7fb !important;
+  color:#172033 !important;
+}
+html[data-theme="light"] header.wf-head{
+  background:#fff !important;
+  border-bottom:1px solid #e6eaf1;
+  color:#172033 !important;
+}
+html[data-theme="light"] header .muted,
+html[data-theme="light"] .muted,
+html[data-theme="light"] .wf-help,
+html[data-theme="light"] td small{color:#748097 !important;}
+html[data-theme="light"] h1,
+html[data-theme="light"] h2{color:#172033 !important;}
+html[data-theme="light"] .wf-card,
+html[data-theme="light"] dialog.wf-dialog{
+  background:#fff !important;
+  border:1px solid #e6eaf1 !important;
+  color:#172033 !important;
+  box-shadow:0 10px 30px rgba(21,28,45,.07) !important;
+}
+html[data-theme="light"] .wf-tabs button,
+html[data-theme="light"] button.secondary,
+html[data-theme="light"] .wf-link.secondary{
+  background:#eef2f7 !important;
+  color:#253046 !important;
+  border:1px solid #dfe4ec !important;
+}
+html[data-theme="light"] .wf-tabs button.active,
+html[data-theme="light"] button,
+html[data-theme="light"] .wf-link{
+  background:#4f46e5 !important;
+  border:1px solid #4f46e5 !important;
+  color:#fff !important;
+}
+html[data-theme="light"] button.secondary,
+html[data-theme="light"] .wf-link.secondary{
+  background:#eef2f7 !important;
+  color:#253046 !important;
+  border:1px solid #dfe4ec !important;
+}
+html[data-theme="light"] input,
+html[data-theme="light"] select{
+  background:#fff !important;
+  border:1px solid #dfe4ec !important;
+  color:#172033 !important;
+}
+html[data-theme="light"] .wf-note{background:#eef2ff !important; color:#312e81 !important;}
+html[data-theme="light"] .wf-note.ok{background:#ecfdf5 !important; color:#065f46 !important;}
+html[data-theme="light"] .wf-note.bad{background:#fef2f2 !important; color:#991b1b !important;}
+html[data-theme="light"] th{background:#f8fafc !important; color:#7b8495 !important;}
+html[data-theme="light"] td{border-bottom:1px solid #edf0f5 !important; color:#172033 !important;}
+html[data-theme="light"] dialog::backdrop{background:rgba(15,23,42,.56) !important;}
+html[data-theme="light"] dialog .wf-dialog-foot{background:#f8fafc !important;}
+html[data-theme="light"] iframe.wf-terminal{background:#fff !important; border:1px solid #e6eaf1 !important;}
+html[data-theme="light"] .wf-steps span:before{background:#eef2ff !important; color:#4f46e5 !important;}
+html[data-theme="light"] .wf-banner{border-color:#c7d2fe !important;}

@@ -114,3 +114,105 @@ tr:hover td{background:rgba(98,0,238,.05);}
   background:rgba(98,0,238,.18) !important;
   color:#BBA7FF !important;
 }
+
+/* Light theme */
+html[data-theme="light"]{
+  color-scheme:light;
+  color:#172033 !important;
+  background:#f5f7fb !important;
+}
+html[data-theme="light"] body{
+  background:#f5f7fb !important;
+  color:#172033 !important;
+}
+html[data-theme="light"] body::before{display:none !important;}
+html[data-theme="light"] .portal-head{
+  background:#fff !important;
+  border-bottom:1px solid #e6eaf1;
+  color:#172033 !important;
+  backdrop-filter:none;
+}
+html[data-theme="light"] .portal-head span{color:#748097 !important;}
+html[data-theme="light"] .portal-head button,
+html[data-theme="light"] .tabs button.active,
+html[data-theme="light"] .login-card button{
+  background:#4f46e5 !important;
+  border:1px solid #4f46e5 !important;
+  color:#fff !important;
+  box-shadow:none;
+}
+html[data-theme="light"] .tabs button,
+html[data-theme="light"] .secondary{
+  background:#eef2f7 !important;
+  color:#253046 !important;
+  border:1px solid #dfe4ec !important;
+}
+html[data-theme="light"] .hero,
+html[data-theme="light"] .tab,
+html[data-theme="light"] .login-card,
+html[data-theme="light"] .place-card,
+html[data-theme="light"] .receipt-summary{
+  background:#fff !important;
+  border:1px solid #e6eaf1 !important;
+  box-shadow:0 10px 30px rgba(21,28,45,.07) !important;
+  color:#172033 !important;
+}
+html[data-theme="light"] .hero h1,
+html[data-theme="light"] .login-card h1{color:#172033 !important;}
+html[data-theme="light"] .hero p,
+html[data-theme="light"] .login-card p,
+html[data-theme="light"] td small,
+html[data-theme="light"] .receipt-summary span,
+html[data-theme="light"] .receipt-summary small,
+html[data-theme="light"] .places-loading,
+html[data-theme="light"] .places-empty,
+html[data-theme="light"] .place-card small{color:#748097 !important;}
+html[data-theme="light"] .toolbar input,
+html[data-theme="light"] .toolbar select,
+html[data-theme="light"] .login-card input{
+  background:#fff !important;
+  border:1px solid #dfe4ec !important;
+  color:#172033 !important;
+}
+html[data-theme="light"] .toolbar input:focus,
+html[data-theme="light"] .toolbar select:focus,
+html[data-theme="light"] .login-card input:focus{
+  border-color:#818cf8 !important;
+  box-shadow:0 0 0 3px rgba(99,102,241,.1);
+}
+html[data-theme="light"] th{
+  background:#f8fafc !important;
+  color:#7b8495 !important;
+  border-bottom:1px solid #e6eaf1 !important;
+}
+html[data-theme="light"] td{
+  border-bottom:1px solid #edf0f5 !important;
+  color:#172033 !important;
+}
+html[data-theme="light"] tr:hover td{background:#fafbff;}
+html[data-theme="light"] .portal-login{
+  background:#f5f7fb !important;
+}
+html[data-theme="light"] .login-card{
+  border-color:#e6eaf1 !important;
+  box-shadow:0 10px 30px rgba(21,28,45,.07) !important;
+}
+html[data-theme="light"] .login-card .brand{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6) !important;
+  box-shadow:none;
+}
+html[data-theme="light"] .msg.error{color:#b91c1c !important;}
+html[data-theme="light"] .place-toggle{
+  border:1px solid #c7d2fe !important;
+  background:#eef2ff !important;
+  color:#4338ca !important;
+}
+html[data-theme="light"] .place-toggle.active{
+  background:#4f46e5 !important;
+  color:#fff !important;
+}
+html[data-theme="light"] .places-row td{background:#f8fafc !important;}
+html[data-theme="light"] .portal-tag{
+  background:#eef2ff !important;
+  color:#4338ca !important;
+}
