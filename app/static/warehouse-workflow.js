@@ -29,5 +29,6 @@
   $('wfHistory').onclick=e=>{const b=e.target.closest('[data-plan]');if(b)busy(b,async()=>W.showPlan(await W.api(W.scoped('/workflow/plans/'+b.dataset.plan)),{onConfirmed:history}));};$('wfHistoryRefresh').onclick=e=>busy(e.target,history);
   window.addEventListener('message',e=>{if(e.origin===location.origin&&e.source===parent&&e.data?.type==='fc-select-transfer'){show('fbs');return;}if(e.origin===location.origin&&e.source===$('wfTerminal').contentWindow&&e.data?.type==='fc-warehouse-changed'){parent.postMessage(e.data,location.origin);return;}if(e.origin!==location.origin||e.source!==$('wfTerminal').contentWindow||!e.data||e.data.client_id!==W.scope.client_id||e.data.warehouse_id!==W.scope.warehouse_id)return;if(e.data.type==='fc-workflow-go')W.go(e.data.page,{location_id:e.data.location_id||'',task_id:e.data.task_id||''});});
   if(!W.valid()){error(Error('Выберите клиента и склад в WMS, затем откройте «Приёмка и сборка».'));document.querySelectorAll('button,input,select').forEach(x=>x.disabled=true);return;}
-  $('wfTerminal').src=W.scoped('/receiving-terminal');context().catch(error);const saved=localStorage.getItem(key);if(saved&&/^[0-9a-f-]{36}$/.test(saved))lastPlan(saved);
+  const terminalUrl=W.scoped('/receiving-terminal')+(/(?:^|[?&])embed=1(?:&|$)/.test(location.search)?'&embed=1':'');
+  $('wfTerminal').src=terminalUrl;context().catch(error);const saved=localStorage.getItem(key);if(saved&&/^[0-9a-f-]{36}$/.test(saved))lastPlan(saved);
 })();

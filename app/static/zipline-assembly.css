@@ -1,0 +1,368 @@
+/* ZIPLINE · Сборка (#page-warehousework)
+   Overrides light r62/r68 injects and keeps fields/buttons aligned. */
+
+#page-warehousework{
+  --as-panel:linear-gradient(180deg,rgba(24,26,33,.96),rgba(13,14,19,.98));
+  --as-solid:#12141A;
+  --as-line:#252936;
+  --as-line-soft:#2C3040;
+  --as-text:#F5F7FB;
+  --as-muted:#9EA8B7;
+  --as-input:#0B0D12;
+  --as-accent:#8B62FF;
+  min-width:0;
+}
+#page-warehousework.page.active{
+  display:flex!important;
+  flex-direction:column;
+  gap:14px;
+}
+
+#page-warehousework > .panel,
+#page-warehousework .panel{
+  background:var(--as-panel)!important;
+  border:1px solid var(--as-line)!important;
+  color:var(--as-text)!important;
+  box-shadow:inset 0 1px 0 #FFFFFF06!important;
+  border-radius:14px!important;
+  margin:0!important;
+  min-width:0;
+}
+
+#page-warehousework .panel + .panel,
+#page-warehousework .r62-section{
+  margin-top:0!important;
+}
+
+#page-warehousework .panel-head{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px 16px!important;
+  margin-bottom:14px!important;
+}
+#page-warehousework .panel-head > div{min-width:0;flex:1 1 240px}
+#page-warehousework .panel-head h2,
+#page-warehousework .panel-head h3{
+  margin:2px 0 0!important;
+  color:var(--as-text)!important;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+#page-warehousework .panel-head p,
+#page-warehousework .panel > p,
+#page-warehousework .muted,
+#page-warehousework .subline{
+  color:var(--as-muted)!important;
+}
+#page-warehousework .kicker{
+  color:#BBA7FF!important;
+  letter-spacing:.04em;
+}
+
+/* —— Tabs —— */
+#r107AssemblyTabs > .button-row{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+#r107AssemblyTabs > .button-row > button{
+  min-height:42px!important;
+  padding:9px 16px!important;
+  white-space:nowrap;
+}
+#r107FbsPick,
+#r107MainIntro{
+  margin-top:16px!important;
+}
+
+/* —— KPI / stats (were hard-coded white in JS inject) —— */
+#page-warehousework .r62-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;
+  margin:4px 0 0!important;
+}
+#page-warehousework .r62-stat{
+  padding:14px!important;
+  border:1px solid var(--as-line)!important;
+  border-radius:12px!important;
+  background:var(--as-solid)!important;
+  color:var(--as-text)!important;
+  min-width:0;
+}
+#page-warehousework .r62-stat small{
+  display:block!important;
+  color:var(--as-muted)!important;
+}
+#page-warehousework .r62-stat b{
+  display:block!important;
+  font-size:22px!important;
+  margin-top:6px!important;
+  color:var(--as-text)!important;
+  overflow-wrap:anywhere;
+}
+
+/* —— Action grids: equal field heights —— */
+#page-warehousework .r62-actions{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr))!important;
+  align-items:end!important;
+  gap:12px!important;
+  margin:12px 0 0!important;
+}
+#page-warehousework .r62-actions > label:not(.btn){
+  display:grid!important;
+  gap:6px!important;
+  min-width:0!important;
+  width:auto!important;
+  margin:0!important;
+  color:var(--as-muted)!important;
+  font-weight:650!important;
+}
+#page-warehousework .r62-actions input,
+#page-warehousework .r62-actions select{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  min-height:42px!important;
+  height:42px!important;
+  box-sizing:border-box!important;
+  padding:10px 12px!important;
+  background:var(--as-input)!important;
+  border:1px solid var(--as-line-soft)!important;
+  color:var(--as-text)!important;
+  border-radius:10px!important;
+  font:inherit!important;
+}
+#page-warehousework .r62-actions input[type=file]{
+  height:auto!important;
+  min-height:42px!important;
+  padding:8px 10px!important;
+  line-height:1.3;
+}
+#page-warehousework .r62-actions > button,
+#page-warehousework .r62-actions > a.secondary,
+#page-warehousework .r62-actions > a.primary,
+#page-warehousework .r62-actions > label.btn,
+#page-warehousework .button-row > button,
+#page-warehousework .button-row > a.secondary,
+#page-warehousework .button-row > a.primary{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  min-height:42px!important;
+  padding:9px 14px!important;
+  border-radius:10px!important;
+  font-weight:700!important;
+  line-height:1.25!important;
+  text-decoration:none!important;
+  white-space:normal!important;
+  text-align:center;
+  max-width:100%;
+}
+#page-warehousework .r62-actions > label.btn{
+  margin:0!important;
+  cursor:pointer;
+  background:rgba(255,255,255,.04)!important;
+  color:#E4EDFC!important;
+  border:1px solid #35415A!important;
+}
+#page-warehousework .button-row{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+
+/* Nested work blocks inside assembly panel */
+#r145f7AssemblyPanel > .panel{
+  margin-top:14px!important;
+  padding:16px!important;
+  background:rgba(255,255,255,.02)!important;
+}
+#r145f7AssemblyPanel > .panel > h3{
+  margin:0 0 8px!important;
+  color:var(--as-text)!important;
+}
+#r145f7AssemblyPanel > .panel > p{
+  margin:0 0 12px!important;
+}
+
+/* Template cards (override box_intake light #f8faff) */
+#page-warehousework .r68-templates{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))!important;
+  gap:12px!important;
+  margin:14px 0 4px!important;
+}
+#page-warehousework .r68-templates article{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  min-width:0!important;
+  height:100%;
+  padding:16px!important;
+  border-radius:14px!important;
+  border:1px solid var(--as-line)!important;
+  background:var(--as-solid)!important;
+  color:var(--as-text)!important;
+  box-shadow:none!important;
+}
+#page-warehousework .r68-templates article h3{
+  margin:0!important;
+  font-size:15px!important;
+  color:var(--as-text)!important;
+}
+#page-warehousework .r68-templates article p{
+  margin:0!important;
+  flex:1!important;
+  color:var(--as-muted)!important;
+  font-size:13px!important;
+  line-height:1.45;
+}
+#page-warehousework .r68-templates article a{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  align-self:flex-start;
+  margin-top:auto!important;
+  min-height:36px!important;
+  padding:7px 12px!important;
+  border-radius:10px!important;
+  border:1px solid #35415A!important;
+  background:rgba(255,255,255,.04)!important;
+  color:#E4EDFC!important;
+  text-decoration:none!important;
+  font-weight:700!important;
+  font-size:13px!important;
+}
+#page-warehousework .r68-templates article a:hover{
+  border-color:#7A56CF!important;
+  background:rgba(98,0,238,.12)!important;
+}
+
+/* Status / warn / tables */
+#page-warehousework .r62-status{font-weight:750}
+#page-warehousework .r62-status.READY_FOR_ADMIN{color:#FFC261!important}
+#page-warehousework .r62-status.CLOSED{color:#71FFA5!important}
+#page-warehousework .r62-status.CANCELLED{color:#FF98A7!important}
+#page-warehousework .r62-status.IN_PROGRESS,
+#page-warehousework .r62-status.ASSIGNED{color:#8B9CFF!important}
+#page-warehousework .r62-status.DRAFT{color:var(--as-muted)!important}
+
+#page-warehousework .warn-box{
+  background:rgba(255,153,0,.12)!important;
+  color:#FFC261!important;
+  border:1px solid rgba(255,153,0,.28)!important;
+  border-radius:12px!important;
+  padding:12px 14px!important;
+  margin:0 0 12px!important;
+}
+#page-warehousework .status,
+#page-warehousework #r62PickImportMsg,
+#page-warehousework #r145f7MainPickResult,
+#page-warehousework #r145f7BoxPickResult,
+#page-warehousework #r145f7ReadyStatus{
+  color:var(--as-muted)!important;
+  margin-top:10px!important;
+  overflow-wrap:anywhere;
+}
+#page-warehousework .table-wrap{
+  border:1px solid var(--as-line)!important;
+  border-radius:12px!important;
+  background:rgba(0,0,0,.18)!important;
+  overflow:auto;
+}
+#page-warehousework .table-wrap table{min-width:720px}
+#page-warehousework th{
+  background:#12141A!important;
+  color:var(--as-muted)!important;
+  border-bottom:1px solid var(--as-line)!important;
+}
+#page-warehousework td{
+  color:var(--as-text)!important;
+  border-bottom:1px solid #222630!important;
+  vertical-align:top;
+}
+#page-warehousework .r62-mini-input{
+  width:82px!important;
+  min-width:72px!important;
+  min-height:36px!important;
+  height:36px!important;
+  padding:6px 8px!important;
+}
+#page-warehousework .r62-audit{
+  max-height:280px;
+  overflow:auto;
+  margin-top:14px;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--as-line);
+  background:rgba(0,0,0,.16);
+}
+#page-warehousework .r62-audit h4{margin:0 0 10px;color:var(--as-text)}
+#page-warehousework .empty-state{color:var(--as-muted)!important}
+
+#page-warehousework .r65-toolbar{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin:0 0 4px!important;
+}
+
+@media(max-width:900px){
+  #page-warehousework .r62-grid{grid-template-columns:1fr!important}
+  #page-warehousework .r62-actions{grid-template-columns:1fr!important}
+  #page-warehousework .r62-actions > button,
+  #page-warehousework .r62-actions > a.secondary,
+  #page-warehousework .r62-actions > a.primary,
+  #page-warehousework .r62-actions > label.btn{width:100%}
+}
+
+/* —— Light theme —— */
+html[data-theme="light"] #page-warehousework{
+  --as-panel:#ffffff;
+  --as-solid:#ffffff;
+  --as-line:#e6eaf1;
+  --as-line-soft:#dfe4ec;
+  --as-text:#172033;
+  --as-muted:#748097;
+  --as-input:#ffffff;
+}
+html[data-theme="light"] #page-warehousework > .panel,
+html[data-theme="light"] #page-warehousework .panel{
+  box-shadow:0 8px 22px rgba(21,28,45,.06)!important;
+}
+html[data-theme="light"] #page-warehousework .r62-stat,
+html[data-theme="light"] #page-warehousework .r68-templates article{
+  background:#fff!important;
+  border-color:var(--as-line)!important;
+}
+html[data-theme="light"] #page-warehousework .kicker{color:#5b4ad1!important}
+html[data-theme="light"] #page-warehousework .r62-status.READY_FOR_ADMIN{color:#b54708!important}
+html[data-theme="light"] #page-warehousework .r62-status.CLOSED{color:#067647!important}
+html[data-theme="light"] #page-warehousework .r62-status.CANCELLED{color:#b42318!important}
+html[data-theme="light"] #page-warehousework .r62-status.IN_PROGRESS,
+html[data-theme="light"] #page-warehousework .r62-status.ASSIGNED{color:#175cd3!important}
+html[data-theme="light"] #page-warehousework .warn-box{
+  background:#fff7ed!important;
+  color:#9a3412!important;
+  border-color:#fed7aa!important;
+}
+html[data-theme="light"] #page-warehousework .r68-templates article a,
+html[data-theme="light"] #page-warehousework .r62-actions > label.btn{
+  background:#eef2f7!important;
+  color:#253046!important;
+  border-color:#dfe4ec!important;
+}
+html[data-theme="light"] #r145f7AssemblyPanel > .panel{
+  background:#f8fafc!important;
+}
+html[data-theme="light"] #page-warehousework th{background:#f8fafc!important}
+html[data-theme="light"] #page-warehousework .table-wrap{background:#fff!important}
+html[data-theme="light"] #page-warehousework .r62-audit{background:#f8fafc!important}

@@ -24,7 +24,12 @@ button{border:0;border-radius:8px;padding:9px 12px;background:var(--blue2);color
 @media(max-width:900px){.grid,.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}header{position:static}.scan{font-size:19px}}
 @media print{header,.no-print{display:none!important}body{background:#fff}main{max-width:none;padding:0}.panel{box-shadow:none;border:0}.table-wrap{overflow:visible}table{min-width:0;font-size:10px}th{position:static}}
 </style>
-<script>(function(){try{var t=localStorage.getItem("zipline_theme");document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script><link rel="stylesheet" href="/static/workflow.css?v=r66"><link rel="stylesheet" href="/static/zipline-workflow-theme.css?v=zip4"><link rel="stylesheet" href="/static/zipline-fc-theme.css?v=zip5"></head>
+<script>(function(){try{var t=localStorage.getItem("zipline_theme");document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script>
+<link rel="stylesheet" href="/static/workflow.css?v=r66">
+<link rel="stylesheet" href="/static/zipline-workflow-theme.css?v=zip4">
+<link rel="stylesheet" href="/static/zipline-fc-theme.css?v=zip5">
+<link rel="stylesheet" href="/static/zipline-receiving-terminal.css?v=zip6">
+</head>
 <body>
 <header>
   <div><h1>Приёмка склада</h1><small>Терминал WMS r64 · Excel · голос · ручной адрес · FBS/FBO · база товаров · QR коробов / ШК товара</small></div>
@@ -33,7 +38,7 @@ button{border:0;border-radius:8px;padding:9px 12px;background:var(--blue2);color
     <button id="tabLabelsBtn" class="tab-switch" type="button">Генерация этикеток</button>
     <button id="voiceBtn" class="secondary" type="button">🔊 Голос ВКЛ</button>
     <button id="backupBtn" class="secondary">Резерв Excel</button>
-    <label style="display:inline-block" class="btn"><input id="restoreInput" type="file" accept=".xlsx,.json" hidden><button id="restoreBtn" class="secondary" type="button">Восстановить</button></label>
+    <button id="restoreBtn" class="secondary" type="button">Восстановить</button>
     <button id="newReceiptBtn" class="amber">Новая приёмка</button>
   </div>
 </header>
@@ -43,7 +48,7 @@ button{border:0;border-radius:8px;padding:9px 12px;background:var(--blue2);color
  <p class="hint">Товар поступит на Основной склад. FBS/FBO ниже — назначение товара; перевод в FBS выполняется отдельным подтверждением.</p>
  <div class="wf-row"><label>Адрес текущего / следующего короба<input id="wmsAddress" list="wmsLocations" placeholder="Код или QR адреса. Пусто — по паллетам"><datalist id="wmsLocations"></datalist></label><button type="button" id="wmsSetAddress" class="secondary">Выбрать адрес</button><button type="button" id="wmsLoose" class="secondary">Принимать без короба</button><button type="button" id="wmsClosePallet" class="secondary">Завершить паллетоместо</button><button type="button" id="wmsRefresh" class="secondary">Обновить адреса и товары</button></div>
  <p id="wmsAddressHint" class="hint">Автоадрес: секция и номер паллетоместа из настроек ниже; ряд 1/2 — положение короба внутри палеты.</p>
- <div class="wf-row"><button type="button" id="wmsPreview">Проверить и принять в WMS</button><button type="button" id="wmsLast" class="secondary" hidden>Открыть последнюю проверку</button><button type="button" id="wmsResync" class="secondary">Сверить артикулы и размеры с WMS</button><label style="display:flex;align-items:center;gap:8px"><input id="wmsAutoScan" type="checkbox" checked> Быстрое сканирование без Enter</label></div>
+ <div class="wf-row wf-row-actions"><button type="button" id="wmsPreview">Проверить и принять в WMS</button><button type="button" id="wmsLast" class="secondary" hidden>Открыть последнюю проверку</button><button type="button" id="wmsResync" class="secondary">Сверить артикулы и размеры с WMS</button><label class="check-inline"><input id="wmsAutoScan" type="checkbox" checked> Быстрое сканирование без Enter</label></div>
  <div id="wmsMessage" role="alert" class="status"></div>
 </section>
 <div id="receivingPage" class="tab-page active">
@@ -59,7 +64,7 @@ button{border:0;border-radius:8px;padding:9px 12px;background:var(--blue2);color
       <label>Партия / машина<input id="batch" placeholder="Например: Машина 03.09"></label>
       <label>Источник<input id="source" placeholder="Например: Приёмка ПК-2"></label>
       <label>Тип по умолчанию<select id="stockType"><option value="FBS">FBS</option><option value="FBO">FBO</option></select></label>
-      <div style="display:flex;align-items:end"><button id="applyAddressBtn" type="button" class="secondary" style="width:100%">Применить стартовый адрес</button></div>
+      <div class="field-action"><button id="applyAddressBtn" type="button" class="secondary">Применить стартовый адрес</button></div>
       <div><div class="hint">Одна сторона палеты — ряд из 8 коробов. Ряд 1 и ряд 2 нужно одинаково обозначить на всех палетах секции. Для приёмки вручную укажите фактические Секцию, Ряд, Паллетоместо и сколько коробов уже стоит в выбранном ряду. После этого программа продолжит автоматически.</div></div>
     </div>
     <div id="nextAddress" class="addr" style="margin-top:12px"></div>
@@ -94,13 +99,13 @@ button{border:0;border-radius:8px;padding:9px 12px;background:var(--blue2);color
       <label>FBS / FBO<select id="itemStockType"><option value="FBS">FBS</option><option value="FBO">FBO</option></select></label>
       <label>Артикул<input id="article" autocomplete="off" placeholder="Подставится из базы"></label>
       <label>Размер<input autocomplete="off" id="size" autocomplete="off" placeholder="Подставится из базы"></label>
-      <div style="display:flex;align-items:end"><button id="addItemBtn" class="green" disabled style="width:100%">Добавить товар</button></div>
+      <div class="field-action"><button id="addItemBtn" class="green" disabled>Добавить товар</button></div>
     </div>
     <div id="itemStatus" class="status">Ожидание короба.</div>
     <div id="catalogStatus" class="status ok">Загрузка базы товаров…</div>
     <div class="row no-print">
       <button id="exportCatalogBtn" class="secondary" type="button">Скачать базу товаров Excel</button>
-      <label class="btn secondary" style="display:inline-flex;align-items:center;cursor:pointer">Загрузить базу товаров Excel<input id="importCatalogInput" type="file" accept=".xlsx,.json" hidden></label>
+      <label class="btn secondary">Загрузить базу товаров Excel<input id="importCatalogInput" type="file" accept=".xlsx,.json" hidden></label>
     </div>
   </section>
 
@@ -1645,6 +1650,6 @@ if(new URL(location.href).searchParams.get('selftest')==='1'){
 })();
 </script>
 <script src="/static/workflow-common.js?v=r66"></script><script src="/static/terminal-wms.js?v=r66"></script>
-<script src="/static/zipline-shell.js?v=zip5"></script>
+<script src="/static/zipline-shell.js?v=zip9"></script>
 <script src="/static/zipline-server-store.js?v=zip3"></script></body>
 </html>

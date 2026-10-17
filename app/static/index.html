@@ -7,8 +7,17 @@
   <script>
     (function(){try{var t=localStorage.getItem("zipline_theme");document.documentElement.setAttribute("data-theme",(t==="light"||t==="dark")?t:"dark");}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();
   </script>
+  <style>
+    /* Critical theme paint before full CSS arrives — avoids light FOUC on reload */
+    html[data-theme="dark"]{color-scheme:dark;background:#0A0A0B;color:#F5F7FB}
+    html[data-theme="light"]{color-scheme:light;background:#f5f7fb;color:#172033}
+  </style>
   <link rel="stylesheet" href="/static/app.css" />
   <link rel="stylesheet" href="/static/finance-ui.css?v=r145f20" />
+  <link rel="stylesheet" href="/static/zipline-fc-theme.css?v=zip6"/>
+  <link rel="stylesheet" href="/static/zipline-assembly.css?v=zip2"/>
+  <link rel="stylesheet" href="/static/receiving-native.css?v=r77"/>
+  <link rel="stylesheet" href="/static/masterdata-ui.css?v=md3"/>
 <style>
 .hidden{display:none!important}
 /* 0.7.7.5 — compact WB product catalogue */
@@ -141,71 +150,325 @@
 
 
 
-/* 0.7.8.9 — targeted layout containment only. No workflow logic changed. */
-#page-palletreceive,#page-marketplaces{min-width:0;max-width:100%;overflow-x:hidden}
-#page-palletreceive .panel,#page-marketplaces .panel{box-sizing:border-box;min-width:0;max-width:100%}
-#page-palletreceive label,#page-marketplaces label{box-sizing:border-box;min-width:0;max-width:100%}
-#page-palletreceive input,#page-palletreceive select,#page-palletreceive textarea,
-#page-marketplaces input,#page-marketplaces select,#page-marketplaces textarea{box-sizing:border-box!important;min-width:0!important;max-width:100%!important;width:100%}
+/* Pallet receive containment (unchanged workflow) */
+#page-palletreceive{min-width:0;max-width:100%;overflow-x:hidden}
+#page-palletreceive .panel{box-sizing:border-box;min-width:0;max-width:100%}
+#page-palletreceive label{box-sizing:border-box;min-width:0;max-width:100%}
+#page-palletreceive input,#page-palletreceive select,#page-palletreceive textarea{box-sizing:border-box!important;min-width:0!important;max-width:100%!important;width:100%}
 #page-palletreceive .pallet-home>*{min-width:0}
 #page-palletreceive .pallet-create-card{overflow:hidden}
 #page-palletreceive .pallet-create-card .form-row{grid-template-columns:1fr!important;min-width:0}
-#page-marketplaces .wb-packing-panel{overflow:hidden}
-#page-marketplaces .wb-packing-panel .panel-head{gap:12px;min-width:0;flex-wrap:wrap}
-#page-marketplaces .wb-packing-panel .panel-head>div{min-width:0}
-#page-marketplaces .wb-packing-panel .inline-controls{display:flex;flex:1 1 420px;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:0}
-#page-marketplaces .wb-packing-panel .inline-controls select{flex:1 1 160px;width:auto!important}
-#page-marketplaces .packing-flow{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;min-width:0}
-#page-marketplaces .packing-flow>.scan-step{min-width:0!important;max-width:100%;box-sizing:border-box}
-#page-marketplaces .packing-flow>.scan-step label{min-width:0!important}
-#page-marketplaces .print-settings{min-width:0;max-width:100%;box-sizing:border-box;display:grid!important;grid-template-columns:minmax(180px,240px) minmax(180px,280px) minmax(220px,1fr)!important;gap:10px 14px!important;align-items:end}
-#page-marketplaces .print-settings small{min-width:0;overflow-wrap:anywhere}
-#page-marketplaces .wb-packing-panel>.button-row{display:flex!important;flex-wrap:wrap!important;gap:8px!important;max-width:100%}
-#page-marketplaces .wb-packing-panel>.button-row button{max-width:100%;white-space:normal}
+
+/* ZIPLINE · Поставки на маркетплейсы — спокойная операционная вёрстка.
+   Важно: display:flex только для .active, иначе селектор по id перебивает
+   глобальный .page{display:none} и блок поставок остаётся видимым на всех экранах. */
+#page-marketplaces.page.wb-mp.active{
+  display:flex;flex-direction:column;gap:16px;
+  min-width:0;max-width:100%;overflow-x:hidden;
+}
+#page-marketplaces.wb-mp > .panel,
+#page-marketplaces.wb-mp > details.panel{
+  margin-top:0!important;min-width:0;max-width:100%;box-sizing:border-box;
+}
+#page-marketplaces.wb-mp .panel-head{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px 18px;flex-wrap:wrap;margin-bottom:14px;
+}
+#page-marketplaces.wb-mp .panel-head h2{margin:2px 0 0;font-size:18px;line-height:1.25}
+#page-marketplaces.wb-mp .panel-head .inline-controls{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;
+  margin-left:auto;min-width:0;
+}
+#page-marketplaces.wb-mp .panel-head .inline-controls select{
+  width:auto;min-width:160px;max-width:min(280px,100%);
+}
+#page-marketplaces.wb-mp input,
+#page-marketplaces.wb-mp select,
+#page-marketplaces.wb-mp textarea{
+  box-sizing:border-box;min-width:0;max-width:100%;
+}
+
+/* Склады — вторичный блок + корректные переносы текста */
+#page-marketplaces .wb-mp-warehouses{min-width:0;overflow:hidden}
+#page-marketplaces .wb-mp-warehouses .panel-head>div:first-child{min-width:0;flex:1 1 240px}
+#page-marketplaces .wb-mp-warehouses .panel-head h2{
+  overflow-wrap:anywhere;word-break:break-word;line-height:1.3;
+}
+#page-marketplaces .wb-mp-wh-help{
+  margin:0 0 14px;padding:0;max-width:none;
+  color:var(--muted,#748097);font-size:13px;line-height:1.55;
+}
+#page-marketplaces .wb-mp-wh-help li{
+  margin:0 0 6px;overflow-wrap:anywhere;word-break:break-word;
+}
+#page-marketplaces .wb-mp-wh-help li:last-child{margin-bottom:0}
+#page-marketplaces #wbWarehouseSettings{
+  margin-top:4px;min-width:0;padding:0;color:inherit;
+}
+#page-marketplaces #wbWarehouseSettings.empty-state{color:var(--muted,#748097)}
+#page-marketplaces .wb-wh-context{
+  display:grid;gap:4px;margin:0 0 12px;padding:12px 14px;
+  border:1px solid var(--line,#e6eaf1);border-radius:12px;
+  background:rgba(255,255,255,.03);
+}
+html[data-theme="light"] #page-marketplaces .wb-wh-context{background:#f8fafc}
+#page-marketplaces .wb-wh-context b,
+#page-marketplaces .wb-wh-context span{
+  display:block;min-width:0;overflow-wrap:anywhere;word-break:break-word;line-height:1.45;
+}
+#page-marketplaces .wb-wh-context span{color:var(--muted,#748097);font-size:12px}
+#page-marketplaces .wb-wh-list{display:flex;flex-direction:column;min-width:0}
+#page-marketplaces .wb-wh-row{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(148px,180px);
+  gap:10px 14px;align-items:center;min-width:0;
+  padding:12px 0;border-bottom:1px solid var(--line,#e6eaf1);
+}
+#page-marketplaces .wb-wh-row:last-child{border-bottom:0}
+#page-marketplaces .wb-wh-meta{min-width:0}
+#page-marketplaces .wb-wh-name{
+  display:block;margin:0;font-size:14px;line-height:1.35;
+  overflow-wrap:anywhere;word-break:break-word;white-space:normal;
+}
+#page-marketplaces .wb-wh-ids{
+  display:block;margin-top:4px;max-width:none;font-size:11px;line-height:1.4;
+  color:var(--muted,#748097);overflow-wrap:anywhere;word-break:break-word;white-space:normal;
+}
+#page-marketplaces .wb-wh-mode{
+  width:100%;max-width:180px;justify-self:end;min-width:0;
+}
+#page-marketplaces .wb-wh-empty{padding:8px 0;color:var(--muted,#748097)}
+#page-marketplaces #wbWarehouseDiagnostics{
+  margin-top:12px;min-width:0;
+}
+#page-marketplaces #wbWarehouseDiagnostics b,
+#page-marketplaces #wbWarehouseDiagnostics span{
+  display:block;overflow-wrap:anywhere;word-break:break-word;white-space:normal;line-height:1.45;
+}
+@media(max-width:720px){
+  #page-marketplaces .wb-wh-row{grid-template-columns:1fr}
+  #page-marketplaces .wb-wh-mode{max-width:none;justify-self:stretch}
+}
+
+/* Упаковка — основная рабочая зона */
+#page-marketplaces .wb-mp-pack{overflow:hidden}
+#page-marketplaces .wb-mp-pack-grid{
+  display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.85fr);
+  gap:14px;align-items:stretch;
+}
+#page-marketplaces .wb-mp-pack .packing-flow{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0;margin:0;
+}
+#page-marketplaces .wb-mp-pack .scan-step{
+  min-width:0;margin:0;padding:12px;border:1px solid var(--line,#e6eaf1);
+  border-radius:12px;background:rgba(255,255,255,.02);
+}
+html[data-theme="light"] #page-marketplaces .wb-mp-pack .scan-step{background:#f8fafc}
+html[data-theme="light"] #page-marketplaces .wb-status-control{background:#f8fafc}
+#page-marketplaces .wb-mp-pack .scan-step>span{
+  margin-top:0;width:28px;height:28px;font-size:12px;
+}
+#page-marketplaces .wb-mp-pack .scan-step label{gap:6px;min-width:0}
+#page-marketplaces .wb-mp-pack .scan-step em{
+  display:block;margin-top:6px;min-height:0;line-height:1.35;font-size:12px;
+}
+#page-marketplaces .wb-mp-pack-side{
+  display:flex;flex-direction:column;gap:10px;min-width:0;
+}
+#page-marketplaces .wb-mp-pack-side #wbPackingResult{
+  flex:1;margin:0;min-height:120px;
+}
+#page-marketplaces .wb-mp-pack-actions{
+  display:flex!important;flex-wrap:wrap;gap:8px;margin:0;
+}
+#page-marketplaces .wb-mp-pack-actions button{
+  width:auto!important;min-width:0;min-height:40px;flex:1 1 auto;
+  white-space:normal;line-height:1.2;
+}
+
+/* Заказы */
+#page-marketplaces .wb-mp-orders{overflow:hidden}
+#page-marketplaces .wb-mp-orders .wb-orders-head{margin-bottom:12px}
+#page-marketplaces .wb-filter-grid{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:10px;margin:0 0 12px;
+}
+#page-marketplaces .wb-filter-grid label{
+  display:grid;gap:5px;min-width:0;
+  color:var(--muted,#748097);font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+#page-marketplaces .wb-filter-grid label .search,
+#page-marketplaces .wb-filter-grid input{
+  width:100%;text-transform:none;letter-spacing:normal;
+  font-size:13px;font-weight:500;color:var(--text,#172033);
+}
+#page-marketplaces .wb-mp-orders #wbStatusTabs.status-tabs{
+  display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;
+  padding:2px 0;
+}
+#page-marketplaces .wb-mp-orders #wbStatusTabs button{
+  border-radius:999px;padding:7px 11px;font-size:12px;
+}
+#page-marketplaces .wb-bulk-actions{
+  display:flex!important;flex-wrap:wrap;gap:8px;align-items:stretch;
+  margin:0 0 12px;width:100%;
+}
+#page-marketplaces .wb-bulk-actions>button{
+  width:auto!important;min-width:0;min-height:40px;flex:0 1 auto;
+  white-space:nowrap;line-height:1.2;padding:9px 12px;
+}
+#page-marketplaces .wb-status-control{
+  display:flex;flex-direction:column;justify-content:center;gap:2px;
+  min-width:200px;flex:1 1 220px;max-width:280px;
+  padding:6px 10px;border:1px solid var(--line,#e6eaf1);
+  border-radius:10px;background:transparent;box-sizing:border-box;
+}
+#page-marketplaces .wb-status-control span{
+  font-size:10px;line-height:1.2;color:var(--muted,#748097);
+  font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+}
+#page-marketplaces .wb-status-control select{
+  width:100%;border:0;padding:2px 0;background:transparent;
+  font-weight:700;outline:none;color:var(--text,#172033);
+}
+/* Один горизонтальный скролл — только у таблицы. Верхний дубль скрыт. */
+#page-marketplaces .wb-scroll-label,
+#page-marketplaces .wb-orders-top-scroll{
+  display:none!important;
+}
+#page-marketplaces #wbOrdersScroll.wb-orders-table.table-wrap{
+  max-height:min(62vh,720px);border-radius:12px;
+  overflow-x:auto!important;overflow-y:auto!important;
+  max-width:100%;scrollbar-gutter:stable;
+}
+#page-marketplaces .wb-mp-orders{overflow-x:hidden;min-width:0}
+#page-marketplaces .wb-pagination{
+  margin-top:10px;padding-top:10px;
+}
+
+/* Поставки */
 #page-marketplaces #wbSupplies{min-width:0;max-width:100%}
-#page-marketplaces .supply-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important;align-items:center;min-width:0;max-width:100%;box-sizing:border-box}
-#page-marketplaces .supply-row-main{min-width:0;overflow:hidden}
-#page-marketplaces .supply-row-main b,#page-marketplaces .supply-row-main small{display:block;overflow-wrap:anywhere}
-#page-marketplaces .supply-actions{display:flex!important;gap:6px!important;flex-wrap:wrap!important;justify-content:flex-end;max-width:520px}
-#page-marketplaces .supply-actions button{white-space:nowrap}
+#page-marketplaces .supply-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;align-items:center;min-width:0;padding:12px 0;
+  border-bottom:1px solid var(--line,#e6eaf1);
+}
+#page-marketplaces .supply-row:last-child{border-bottom:0}
+#page-marketplaces .supply-row-main{min-width:0}
+#page-marketplaces .supply-row-main b,
+#page-marketplaces .supply-row-main small{display:block;overflow-wrap:anywhere}
+#page-marketplaces .supply-actions{
+  display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:520px;
+}
+#page-marketplaces .wb-mp-move summary{
+  cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:2px;
+}
+#page-marketplaces .wb-mp-move summary::-webkit-details-marker{display:none}
+#page-marketplaces .wb-mp-move[open] summary{margin-bottom:12px}
+
 @media(max-width:1180px){
-  #page-marketplaces .packing-flow{grid-template-columns:1fr!important}
-  #page-marketplaces .print-settings{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #page-marketplaces .print-settings small{grid-column:1/-1}
-  #page-marketplaces .supply-row{grid-template-columns:1fr!important}
+  #page-marketplaces .wb-mp-pack-grid{grid-template-columns:1fr}
+  #page-marketplaces .wb-filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #page-marketplaces .supply-row{grid-template-columns:1fr}
   #page-marketplaces .supply-actions{justify-content:flex-start;max-width:none}
 }
-@media(max-width:760px){
-  #page-marketplaces .print-settings{grid-template-columns:1fr!important}
-}
-
-
-/* 0.7.8.20 — compact WB workspace + unrestricted local workflow selector. */
-#page-marketplaces .wb-packing-panel{overflow:hidden!important;min-width:0!important}
-#page-marketplaces .wb-packing-panel .packing-flow{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important;width:100%!important}
-#page-marketplaces .wb-packing-panel .print-settings{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important;width:100%!important;max-width:100%!important;gap:10px!important}
-#page-marketplaces .wb-packing-panel .print-settings>label{width:100%!important;min-width:0!important}
-#page-marketplaces .wb-packing-panel .print-settings small{grid-column:1/-1!important;white-space:normal!important}
-#page-marketplaces .wb-packing-panel>.button-row{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(185px,1fr))!important;width:100%!important;max-width:100%!important;gap:8px!important}
-#page-marketplaces .wb-packing-panel>.button-row button{width:100%!important;min-width:0!important;max-width:100%!important;white-space:normal!important;line-height:1.2!important;min-height:46px!important}
-#page-marketplaces .wb-filter-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;gap:10px!important;min-width:0!important;max-width:100%!important}
-#page-marketplaces .wb-filter-grid>*{min-width:0!important;max-width:100%!important}
-#page-marketplaces .wb-orders-head{display:flex!important;flex-wrap:wrap!important;gap:10px!important;min-width:0!important}
-#page-marketplaces .wb-orders-head .inline-controls{display:flex!important;flex-wrap:wrap!important;gap:8px!important;min-width:0!important}
-#page-marketplaces .wb-bulk-actions{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;gap:8px!important;width:100%!important;max-width:100%!important;align-items:stretch!important}
-#page-marketplaces .wb-bulk-actions>button,#page-marketplaces .wb-bulk-actions>.wb-status-control{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
-#page-marketplaces .wb-bulk-actions>button{white-space:normal!important;line-height:1.2!important;min-height:48px!important}
-#page-marketplaces .wb-status-control{display:flex!important;flex-direction:column!important;justify-content:center!important;gap:3px!important;padding:5px 10px!important;border:1px solid var(--line,#dfe3ea)!important;border-radius:12px!important;background:var(--panel,#fff)!important}
-#page-marketplaces .wb-status-control span{font-size:11px!important;line-height:1.1!important;color:var(--muted,#667085)!important}
-#page-marketplaces .wb-status-control select{width:100%!important;border:0!important;padding:4px 0!important;background:transparent!important;font-weight:700!important;outline:none!important}
 @media(max-width:900px){
-  #page-marketplaces .wb-packing-panel .packing-flow,
-  #page-marketplaces .wb-packing-panel .print-settings,
-  #page-marketplaces .wb-packing-panel>.button-row,
-  #page-marketplaces .wb-filter-grid,
-  #page-marketplaces .wb-bulk-actions{grid-template-columns:1fr!important}
+  #page-marketplaces .wb-mp-pack .packing-flow{grid-template-columns:1fr}
+  #page-marketplaces .wb-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #page-marketplaces .wb-bulk-actions>button{white-space:normal;flex:1 1 160px}
+  #page-marketplaces .wb-status-control{max-width:none;flex:1 1 100%}
+  #page-marketplaces .panel-head .inline-controls{width:100%;justify-content:stretch}
+  #page-marketplaces .panel-head .inline-controls select{flex:1 1 160px;max-width:none}
+}
+@media(max-width:640px){
+  #page-marketplaces .wb-filter-grid{grid-template-columns:1fr}
 }
 
+
+/* ZIPLINE embed pages: терминал / workflow внутри основного SPA */
+#page-receiving_terminal.zip-embed-page.page.active,
+#page-warehouse_workflow.zip-embed-page.page.active{
+  display:flex!important;flex-direction:column;gap:0;padding:0;margin:0;
+  min-height:calc(100vh - 72px);min-width:0;max-width:100%;
+}
+#page-receiving_terminal .zip-embed-frame,
+#page-warehouse_workflow .zip-embed-frame{
+  flex:1 1 auto;width:100%;min-height:calc(100vh - 88px);border:0;background:transparent;
+}
+
+/* Ozon FBS — только #page-ozon, display:flex лишь у .active */
+#page-ozon.page.active{
+  display:flex;flex-direction:column;gap:16px;min-width:0;max-width:100%;
+}
+#page-ozon > .panel{margin-top:0;min-width:0;max-width:100%;box-sizing:border-box}
+#page-ozon .panel-head{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px 18px;flex-wrap:wrap;margin-bottom:14px;
+}
+#page-ozon .panel-head h2{margin:2px 0 0;font-size:18px;line-height:1.25;overflow-wrap:anywhere}
+#page-ozon .panel-head .inline-controls{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;margin-left:auto;min-width:0;
+}
+#page-ozon .panel-head .inline-controls select{width:auto;min-width:160px;max-width:min(280px,100%)}
+#page-ozon #ozonFbsControls,
+#page-ozon .ozon-fbs-controls{
+  display:grid;gap:12px;margin:0;padding:14px 16px;
+  border:1px solid var(--line,#252936);border-radius:14px;
+  background:rgba(255,255,255,.03);min-width:0;
+}
+html[data-theme="light"] #page-ozon #ozonFbsControls,
+html[data-theme="light"] #page-ozon .ozon-fbs-controls{
+  background:#f5f8ff;border-color:#c7d7fe;
+}
+#page-ozon .ozon-control-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;min-width:0;
+}
+#page-ozon .ozon-control-head > div{min-width:0;flex:1 1 220px}
+#page-ozon .ozon-control-head h3{margin:2px 0 0;font-size:16px;line-height:1.3;overflow-wrap:anywhere}
+#page-ozon .ozon-control-head p{
+  margin:6px 0 0;color:var(--muted,#9EA8B7);font-size:13px;line-height:1.45;
+  overflow-wrap:anywhere;max-width:62ch;
+}
+#page-ozon #ozonConnectionState{flex:0 0 auto;align-self:flex-start}
+#page-ozon .ozon-control-grid{
+  display:grid;grid-template-columns:minmax(0,1.2fr) minmax(150px,.55fr) auto;
+  align-items:end;gap:10px 12px;min-width:0;
+}
+#page-ozon .ozon-control-grid label{
+  display:grid;gap:6px;min-width:0;
+  font-size:11px;font-weight:800;color:var(--muted,#9EA8B7);
+  text-transform:uppercase;letter-spacing:.04em;
+}
+#page-ozon .ozon-control-grid select,
+#page-ozon .ozon-control-grid input{
+  width:100%;min-width:0;font-size:13px;font-weight:500;
+  text-transform:none;letter-spacing:normal;color:var(--text,#F5F7FB);
+}
+#page-ozon .ozon-control-grid .button-row{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;
+}
+#page-ozon .ozon-control-grid .button-row button{white-space:normal;line-height:1.2;min-height:40px}
+#page-ozon .ozon-fbs-controls > small,
+#page-ozon #ozonShipmentHint{
+  display:block;color:var(--muted,#9EA8B7);font-size:12px;line-height:1.45;
+  overflow-wrap:anywhere;
+}
+#page-ozon .ozon-table-panel .table-wrap{
+  max-width:100%;overflow:auto;border-radius:12px;max-height:min(64vh,740px);
+}
+#page-ozon .ozon-postings-table td,
+#page-ozon .ozon-postings-table th{overflow-wrap:anywhere;white-space:normal}
+#page-ozon .ozon-ready{color:var(--green,#00FF66);font-weight:750}
+#page-ozon .ozon-not-ready{color:var(--amber,#FF9900);font-weight:750}
+html[data-theme="light"] #page-ozon .ozon-ready{color:#067647}
+html[data-theme="light"] #page-ozon .ozon-not-ready{color:#b54708}
+@media(max-width:900px){
+  #page-ozon .ozon-control-grid{grid-template-columns:1fr}
+  #page-ozon .ozon-control-grid .button-row{justify-content:stretch}
+  #page-ozon .ozon-control-grid .button-row button{flex:1 1 160px}
+  #page-ozon .panel-head .inline-controls{width:100%}
+  #page-ozon .panel-head .inline-controls select{flex:1 1 160px;max-width:none}
+}
 
 /* FC_R145F8_FBO_UI */
 #page-fbo .fbo-top-grid,#page-fbo .fbo-work-grid{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.4fr);gap:16px;align-items:start}#page-fbo .fbo-batch-list{display:grid;gap:8px;max-height:360px;overflow:auto}#page-fbo .fbo-batch-row{display:flex;justify-content:space-between;gap:14px;text-align:left;padding:12px 14px;border:1px solid var(--border,#e5e7eb);border-radius:12px;background:#fff}#page-fbo .fbo-batch-row.active{border-color:#5b4ad1;background:#f6f4ff}#page-fbo .fbo-batch-row span{display:grid;gap:3px}#page-fbo .fbo-label-row{display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:10px;align-items:end;padding:10px 0;border-bottom:1px solid #edf0f4}#page-fbo .fbo-label-row>div{display:grid;gap:3px}#page-fbo .fbo-box-cards{display:grid;gap:8px;margin-top:14px}@media(max-width:900px){#page-fbo .fbo-top-grid,#page-fbo .fbo-work-grid{grid-template-columns:1fr}#page-fbo .fbo-label-row{grid-template-columns:1fr}}
@@ -227,6 +490,7 @@
     // Deep-link before app-r145f39.js reads fc_active_page
     var q=new URLSearchParams(location.search);
     var deep=(q.get('page')||'').trim()||(location.hash||'').replace(/^#/,'').trim();
+    if(deep==='palletreceive')deep='receivinghome';
     if(deep){try{localStorage.setItem('fc_active_page',deep);}catch(_){}}
   }catch(_){}
 })();
@@ -253,7 +517,7 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
       <nav id="mainNav" class="nav">
         <div class="nav-group"><small>СКЛАД</small>
           <button data-page="dashboard" class="active"><span>⌂</span>Главная</button>
-          <button data-page="palletreceive"><span>▣</span>Приёмка</button>
+          <button data-page="receivinghome"><span>▣</span>Приёмка</button>
           <button data-page="warehousework"><span>СБ</span>Сборка</button>
           <button data-page="inventory"><span>▦</span>Остатки</button>
           <button data-page="locations"><span>⌗</span>Ячейки</button>
@@ -354,6 +618,34 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
         </div>
       </section>
 
+      <section id="page-receivinghome" class="page">
+        <div class="panel">
+          <span class="kicker">ПРИЁМКА</span>
+          <h2>Что принимаем?</h2>
+          <div class="r69-cards">
+            <button type="button" data-r69-go="receive"><b>Товар</b><span>Выберите короб или ячейку, сканируйте ШК и подтвердите количество.</span></button>
+            <button type="button" data-r68-open="receive"><b>Короба</b><span>Сканируйте при разгрузке. Палеты по 16 коробов, стороны по 8. Товар можно заполнить позже.</span></button>
+            <button type="button" data-r69-go="bulkimport"><b>Товар из Excel</b><span>Проверьте раскладку, адреса и товары перед приёмкой.</span></button>
+          </div>
+          <div class="r69-actions">
+            <button type="button" class="secondary" data-r69-labels>Этикетки коробов и товаров</button>
+            <button type="button" class="secondary" data-r69-go="localcatalog">Справочник / добавить товар</button>
+            <button type="button" class="secondary" data-r69-go="locations">Ячейки, палеты и секции</button>
+          </div>
+        </div>
+        <div class="panel">
+          <details id="r69OldReceipts">
+            <summary>Старые приёмки и файлы терминала</summary>
+            <p>Существующие документы и незавершённые приёмки сохранены. Новую приёмку коробов начинайте кнопкой «Короба» выше.</p>
+            <div class="r69-actions">
+              <button type="button" class="secondary" data-r69-go="receivingarchive">Открыть прежние приёмки</button>
+              <button type="button" class="secondary" data-r69-package>Загрузить Excel из терминала</button>
+              <button type="button" class="secondary" data-r69-plans>История импортов и переводов</button>
+            </div>
+          </details>
+        </div>
+      </section>
+
       <section id="page-palletreceive" class="page">
         <div id="palletReceiptHome" class="pallet-home">
           <div class="panel pallet-create-card">
@@ -404,6 +696,13 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
             <div id="palletLayoutResult" class="result-card"><b>Товар пока не принят</b><span>Сначала примите палеты и короба, затем загрузите Excel.</span></div>
           </div>
         </div>
+      </section>
+
+      <section id="page-receiving_terminal" class="page zip-embed-page">
+        <iframe class="zip-embed-frame" title="Терминал приёмки" data-zip-embed-src="/receiving-terminal?embed=1"></iframe>
+      </section>
+      <section id="page-warehouse_workflow" class="page zip-embed-page">
+        <iframe class="zip-embed-frame" title="Складской workflow" data-zip-embed-src="/warehouse-workflow?embed=1"></iframe>
       </section>
 
       <section id="page-bulkimport" class="page">
@@ -508,35 +807,80 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
         </div>
       </section>
 
-      <section id="page-marketplaces" class="page">
-        <div class="panel mt18">
+      <section id="page-marketplaces" class="page wb-mp">
+        <div class="panel wb-mp-pack wb-packing-panel">
           <div class="panel-head">
-            <div><span class="kicker">WILDBERRIES · СКЛАДЫ ОТГРУЗКИ</span><h2>Какие склады показывать</h2></div>
-            <div class="inline-controls"><button id="wbWarehouseToggleBtn" class="secondary" type="button" aria-expanded="true">Склады ▴</button><button id="loadWbWarehousesBtn" class="secondary" type="button">Обновить склады WB</button><button id="diagnoseWbWarehouseBtn" class="secondary" type="button">Диагностика склада</button><button id="saveWbWarehousesBtn" class="primary" type="button">Сохранить выбор</button></div>
+            <div><span class="kicker">УПАКОВКА · WB FBS</span><h2>ШК товара → Честный знак → этикетка</h2></div>
+            <div class="inline-controls">
+              <select id="wbCredentialSelect" aria-label="Кабинет WB"></select>
+              <button id="syncWbOrdersBtn" class="secondary" type="button">Синхронизировать</button>
+              <button id="importWbDataBtn" class="primary" type="button">Импорт WB</button>
+            </div>
           </div>
-          <div id="wbWarehousePanelBody">
-            <p class="muted">Для основного склада выберите <b>Работа</b>. Второй можно поставить в <b>Наблюдение</b> — заказы видны, но сборка, ЧЗ и изменение поставок заблокированы. Остальные склады поставьте <b>Не показывать</b>.</p>
-            <div id="wbWarehouseSettings" class="empty-state">Выберите кабинет WB и нажмите «Обновить склады WB».</div><div id="wbWarehouseDiagnostics" class="result-card hidden"></div>
+          <div class="wb-mp-pack-grid">
+            <div class="packing-flow">
+              <div class="scan-step"><span>1</span><label>Штрихкод товара<input id="wbPackProduct" autocomplete="off" placeholder="Отсканируйте ШК товара" /></label><em id="wbPackProductHint">Система выберет следующий заказ «На сборке» с этим товаром.</em></div>
+              <div class="scan-step"><span>2</span><label>Честный знак (DataMatrix)<input id="wbPackChz" autocomplete="off" placeholder="Сначала отсканируйте товар" disabled /></label><em id="wbPackChzHint">Без ЧЗ заказ не считается собранным.</em></div>
+              <div class="scan-step" id="wbHuWeightStep" hidden><span>3</span><label>Вес места, кг<input id="wbHuWeight" type="number" min="0.001" step="0.001" placeholder="WEIGHT_REQUIRED" /></label><em id="wbHuWeightHint">По policy WEIGHT_REQUIRED вес обязателен до закрытия места.</em></div>
+            </div>
+            <div class="wb-mp-pack-side">
+              <div id="wbPackingResult" class="result-card"><b>Текущий заказ</b><span>Отсканируйте штрихкод товара.</span></div>
+              <div id="wbHuPanel" class="result-card" style="margin-top:10px">
+                <b>Грузовые места (HU)</b>
+                <span class="muted">Правило: 1 физ. короб = 1 HU = 1 уникальная этикетка</span>
+                <div class="form-row" style="margin-top:8px;gap:8px;align-items:end">
+                  <label style="flex:0 0 110px">Мест<input id="wbHuDeclaredPlaces" type="number" min="1" max="20" value="1" /></label>
+                  <label style="flex:1">Стол<input id="wbHuStation" readonly placeholder="назначается автоматически" /></label>
+                </div>
+                <div id="wbHuList" class="muted" style="margin-top:8px">HU ещё нет — появятся после скана товара.</div>
+                <div class="button-row wb-mp-pack-actions" style="margin-top:8px">
+                  <button id="wbHuCreateBtn" class="secondary" type="button" disabled>Создать место</button>
+                  <button id="wbHuCloseBtn" class="secondary" type="button" disabled>Закрыть место</button>
+                  <button id="wbHuCompleteBtn" class="primary" type="button" disabled>Проверить места</button>
+                </div>
+                <em id="wbHuHint" class="muted"></em>
+              </div>
+              <div class="button-row wb-mp-pack-actions">
+                <button id="wbPackingResetBtn" class="secondary" type="button">Сбросить</button>
+                <button id="wbPackingSkipBtn" class="secondary" type="button" disabled>Пропустить → следующий</button>
+                <button id="wbPackingProductLabelBtn" class="secondary" type="button" disabled>Печать ШК товара</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="panel mt18 wb-packing-panel">
+        <div class="panel" id="wbHuLoadingPanel">
           <div class="panel-head">
-            <div><span class="kicker">WILDBERRIES FBS · УПАКОВКА</span><h2>ШК товара → Честный знак → этикетка WB</h2></div>
-            <div class="inline-controls"><select id="wbCredentialSelect"></select><button id="syncWbOrdersBtn" class="secondary" type="button">Синхронизировать WB</button><button id="importWbDataBtn" class="primary" type="button">Импортировать данные WB</button></div>
+            <div><span class="kicker">ОТГРУЗКА · STAGING / LOADING</span><h2>Скан грузовых мест (HU)</h2></div>
+            <div class="inline-controls">
+              <button id="wbHuShipmentRefreshBtn" class="secondary" type="button">Обновить</button>
+              <button id="wbHuShipmentFromPackedBtn" class="primary" type="button">Создать отгрузку HU из упакованных</button>
+            </div>
           </div>
-          <div class="packing-flow">
-            <div class="scan-step"><span>1</span><label>Штрихкод товара<input id="wbPackProduct" autocomplete="off" placeholder="Отсканируйте ШК товара" /></label><em id="wbPackProductHint">Система выберет следующий заказ «На сборке» с этим товаром.</em></div>
-            <div class="scan-step"><span>2</span><label>Честный знак (DataMatrix)<input id="wbPackChz" autocomplete="off" placeholder="Сначала отсканируйте товар" disabled /></label><em id="wbPackChzHint">Без ЧЗ заказ не считается собранным.</em></div>
+          <div class="form-row" style="gap:10px;flex-wrap:wrap;align-items:end">
+            <label style="min-width:220px;flex:1">Активная отгрузка
+              <select id="wbHuShipmentSelect"><option value="">— нет —</option></select>
+            </label>
+            <label style="min-width:160px">Ячейка STAGE<input id="wbHuStageLoc" placeholder="STAGE-01" value="STAGE-01" /></label>
+            <label style="min-width:220px;flex:1">Скан HU / этикетки
+              <input id="wbHuLoadScan" autocomplete="off" placeholder="Отсканируйте HU или shipping barcode" />
+            </label>
+            <div class="button-row" style="gap:8px">
+              <button id="wbHuStageBtn" class="secondary" type="button">В STAGE</button>
+              <button id="wbHuLoadBtn" class="primary" type="button">Погрузка</button>
+              <button id="wbHuCloseShipBtn" class="secondary" type="button">Закрыть отгрузку</button>
+            </div>
           </div>
-          <div id="wbPackingResult" class="result-card"><b>Текущий заказ</b><span>Отсканируйте штрихкод товара.</span></div>
-          <div class="button-row"><button id="wbPackingResetBtn" class="secondary" type="button">Сбросить</button><button id="wbPackingSkipBtn" class="secondary" type="button" disabled>Пропустить заказ → следующий</button><button id="wbPackingProductLabelBtn" class="secondary" type="button" disabled>Печать ШК товара</button></div>
+          <div id="wbHuShipmentStatus" class="result-card" style="margin-top:12px"><b>Погрузка</b><span>Создайте отгрузку из упакованных HU или выберите активную.</span></div>
         </div>
 
-        <div class="panel mt18">
+        <div class="panel wb-mp-orders">
           <div class="panel-head wb-orders-head">
-            <div><span class="kicker">WILDBERRIES FBS</span><h2>Заказы</h2></div>
-            <div class="inline-controls"><select id="wbWarehouseView"><option value="">Работа + наблюдение</option><option value="WORK">Только рабочий склад</option><option value="WATCH">Только наблюдение</option></select><button id="wbColumnsBtn" class="secondary" type="button">⚙ Столбцы</button></div>
+            <div><span class="kicker">ЗАКАЗЫ · WB FBS</span><h2>Рабочий список</h2></div>
+            <div class="inline-controls">
+              <select id="wbWarehouseView" aria-label="Фильтр складов"><option value="">Работа + наблюдение</option><option value="WORK">Только рабочий склад</option><option value="WATCH">Только наблюдение</option></select>
+              <button id="wbColumnsBtn" class="secondary" type="button">Столбцы</button>
+            </div>
           </div>
           <div class="wb-filter-grid">
             <label><span>№ заказа</span><input id="wbOrderNumberFilter" class="search" inputmode="numeric" placeholder="Найти конкретный заказ" /></label>
@@ -558,18 +902,18 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
           </div>
           <div class="button-row wb-bulk-actions">
             <button id="wbPickingListBtn" class="primary" disabled>На сборку · Excel</button>
-            <label class="wb-status-control"><span>Изменить статус выбранных</span><select id="wbBulkStatusSelect" disabled>
+            <label class="wb-status-control"><span>Статус выбранных</span><select id="wbBulkStatusSelect" disabled>
               <option value="">Выберите статус…</option>
               <option value="NEW">Новые</option>
               <option value="PICKING">На сборке</option>
               <option value="PACKED">Упаковано</option>
               <option value="SENT">Отправлены</option>
             </select></label>
-            <button id="wbCreateSupplyBtn" class="secondary" disabled>Создать поставку WB</button>
-            <button id="wbShipPackedBtn" class="primary" disabled>Создать отгрузку из упакованных</button>
-            <button id="wbPrintLabelsBtn" class="secondary" disabled>Повторная печать этикеток</button>
+            <button id="wbCreateSupplyBtn" class="secondary" disabled>Создать поставку</button>
+            <button id="wbShipPackedBtn" class="primary" disabled>Отгрузка из упакованных</button>
+            <button id="wbPrintLabelsBtn" class="secondary" disabled>Печать этикеток</button>
           </div>
-          <div class="wb-scroll-label">Горизонтальная прокрутка таблицы</div><div id="wbOrdersTopScroll" class="wb-orders-top-scroll"><div></div></div>
+          <div id="wbOrdersTopScroll" class="wb-orders-top-scroll" hidden aria-hidden="true"><div></div></div>
           <div id="wbOrdersScroll" class="table-wrap wb-orders-table"><table><thead id="wbOrdersHead"></thead><tbody id="wbOrdersBody"><tr><td class="empty-state">Заказы загружаются…</td></tr></tbody></table></div>
           <div class="wb-pagination" id="wbOrdersPagination">
             <div><span id="wbOrdersRange">0–0 из 0</span></div>
@@ -577,13 +921,41 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
           </div>
         </div>
 
-        <div class="panel mt18">
-          <div class="panel-head"><div><span class="kicker">ПОСТАВКИ WB</span><h2>Актуальные поставки</h2></div><div class="inline-controls"><label class="switch-label"><input id="wbShowClosedSupplies" type="checkbox" /> Показывать закрытые</label><button id="loadWbSuppliesBtn" class="secondary">Обновить</button></div></div>
+        <div class="panel wb-mp-warehouses wb-warehouse-panel">
+          <div class="panel-head wb-collapsible-head">
+            <div><span class="kicker">НАСТРОЙКА · СКЛАДЫ WB</span><h2>Какие склады показывать</h2></div>
+            <div class="inline-controls">
+              <button id="wbWarehouseToggleBtn" class="secondary" type="button" aria-expanded="true">Свернуть</button>
+              <button id="loadWbWarehousesBtn" class="secondary" type="button">Обновить склады</button>
+              <button id="diagnoseWbWarehouseBtn" class="secondary" type="button">Диагностика</button>
+              <button id="saveWbWarehousesBtn" class="primary" type="button">Сохранить</button>
+            </div>
+          </div>
+          <div id="wbWarehousePanelBody">
+            <ul class="wb-mp-wh-help">
+              <li>Для основного склада выберите <b>Работа</b>.</li>
+              <li>Второй можно поставить в <b>Наблюдение</b> — заказы видны, но сборка, ЧЗ и изменение поставок заблокированы.</li>
+              <li>Остальные склады — <b>Не показывать</b>.</li>
+            </ul>
+            <div id="wbWarehouseSettings" class="empty-state">Выберите кабинет WB выше и нажмите «Обновить склады».</div>
+            <div id="wbWarehouseDiagnostics" class="result-card hidden"></div>
+          </div>
+        </div>
+
+        <div class="panel wb-mp-supplies">
+          <div class="panel-head">
+            <div><span class="kicker">ПОСТАВКИ WB</span><h2>Актуальные поставки</h2></div>
+            <div class="inline-controls">
+              <label class="switch-label"><input id="wbShowClosedSupplies" type="checkbox" /> Показывать закрытые</label>
+              <button id="loadWbSuppliesBtn" class="secondary" type="button">Обновить</button>
+            </div>
+          </div>
           <div id="wbSupplies" class="empty-state">Поставок пока нет.</div>
         </div>
-        <details id="wbSupplyMovePanel" class="panel mt18 fc-supply-ui">
+
+        <details id="wbSupplyMovePanel" class="panel wb-mp-move fc-supply-ui">
           <summary><span class="kicker">ПОСТАВКИ WB</span><b>Перенос заказов между поставками</b></summary>
-          <p class="muted">Используется подключение WB, выбранное выше в разделе FBS. Локальная связь с поставкой меняется только после подтверждения WB.</p>
+          <p class="muted">Используется подключение WB, выбранное в блоке упаковки. Локальная связь с поставкой меняется только после подтверждения WB.</p>
           <div id="wbSupplyMoveCapability" class="fc-finance-msg" role="status"></div>
           <form id="wbSupplyMoveForm" class="fc-finance-form">
             <fieldset id="wbSupplyMoveFields">
@@ -599,9 +971,19 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
 
 
       <section id="page-ozon" class="page">
-        <div class="panel">
-          <div class="panel-head"><div><span class="kicker">OZON FBS</span><h2>Отправления</h2></div><div class="inline-controls"><select id="ozonCredentialSelect"></select><button id="loadOzonPostingsBtn" class="secondary">Обновить</button><button id="ozonPrintLabelsBtn" class="primary" disabled>Печать этикеток</button></div></div>
-          <div class="table-wrap"><table><thead><tr><th><input id="ozonCheckAll" type="checkbox" /></th><th>Отправление</th><th>Статус</th><th>Товары</th><th>Где лежит</th></tr></thead><tbody id="ozonPostingsBody"><tr><td colspan="5" class="empty-state">Подключите Ozon и нажмите «Обновить».</td></tr></tbody></table></div>
+        <div class="panel ozon-head-panel">
+          <div class="panel-head">
+            <div><span class="kicker">OZON FBS</span><h2>Отправления</h2></div>
+            <div class="inline-controls">
+              <select id="ozonCredentialSelect" aria-label="Кабинет Ozon"></select>
+              <button id="loadOzonPostingsBtn" class="secondary" type="button">Обновить</button>
+              <button id="ozonPrintLabelsBtn" class="primary" type="button" disabled>Печать этикеток</button>
+            </div>
+          </div>
+          <div id="ozonControlsMount"></div>
+        </div>
+        <div class="panel ozon-table-panel">
+          <div class="table-wrap ozon-postings-table"><table><thead><tr><th><input id="ozonCheckAll" type="checkbox" aria-label="Выбрать все" /></th><th>Отправление</th><th>Статус</th><th>Товары</th><th>Где лежит</th></tr></thead><tbody id="ozonPostingsBody"><tr><td colspan="5" class="empty-state">Подключите Ozon и нажмите «Обновить».</td></tr></tbody></table></div>
         </div>
       </section>
 
@@ -866,14 +1248,32 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
       </section>
 
       <section id="page-masterdata" class="page">
-        <div class="master-grid">
-          <form id="clientForm" class="panel compact-form"><span class="kicker">КЛИЕНТ</span><h3>Добавить клиента</h3><label>Название<input id="clientName" required /></label><button class="primary">Добавить</button><button type="button" id="fc25ClientsOpen" class="secondary">Список клиентов: изменить / удалить</button></form>
-          <form id="warehouseForm" class="panel compact-form"><span class="kicker">СКЛАД</span><h3>Добавить склад</h3><label>Код<input id="warehouseCode" required /></label><label>Название<input id="warehouseName" required /></label><button class="primary">Добавить</button></form>
-          <form id="locationForm" class="panel compact-form"><span class="kicker">ЯЧЕЙКА</span><h3>Добавить ячейку</h3><label>Код<input id="locationCode" required /></label><label>Штрихкод<input id="locationBarcode" required /></label><button class="primary">Добавить</button></form>
-          <form id="skuForm" class="panel compact-form"><span class="kicker">ТОВАР</span><h3>Добавить SKU</h3><div class="form-row"><label>Код SKU<input id="skuCode" required /></label><label>Артикул<input id="skuArticle" /></label></div><label>Название<input id="skuName" required /></label><div class="form-row"><label>Размер<input id="skuSize" /></label><label>Штрихкод<input id="skuBarcode" /></label></div><button class="primary">Добавить</button></form>
+        <div id="mdWorkspace"></div>
+        <!-- Legacy form hosts kept for JS bindings; visually replaced by mdWorkspace -->
+        <div class="master-grid" hidden aria-hidden="true">
+          <form id="clientForm" class="panel compact-form"><label>Название<input id="clientName" required /></label><button class="primary">Добавить</button><button type="button" id="fc25ClientsOpen" class="secondary">Список</button></form>
+          <form id="warehouseForm" class="panel compact-form"><label>Название<input id="warehouseName" required /></label><button class="primary">Добавить</button></form>
+          <form id="locationForm" class="panel compact-form"><label>Код<input id="locationCode" required /></label><label>Штрихкод<input id="locationBarcode" required /></label><button class="primary">Добавить</button></form>
+          <form id="skuForm" class="panel compact-form"><label>Код SKU<input id="skuCode" required /></label><label>Артикул<input id="skuArticle" /></label><label>Название<input id="skuName" required /></label><label>Размер<input id="skuSize" /></label><label>Штрихкод<input id="skuBarcode" /></label><button class="primary">Добавить</button></form>
         </div>
       </section>
     </main>
+    <script>
+    (function(){
+      try{
+        var q=new URLSearchParams(location.search);
+        var deep=(q.get('page')||'').trim()||(location.hash||'').replace(/^#/,'').trim()||localStorage.getItem('fc_active_page')||'';
+        if(!deep)return;
+        // Старый id палетной приёмки сразу ведём на новый хаб — без мигания старого экрана.
+        if(deep==='palletreceive')deep='receivinghome';
+        var target=document.getElementById('page-'+deep);
+        if(!target)return;
+        document.querySelectorAll('main .page.active').forEach(function(p){p.classList.remove('active');});
+        target.classList.add('active');
+        try{localStorage.setItem('fc_active_page',deep);}catch(_){}
+      }catch(_){}
+    })();
+    </script>
   </div>
   <div id="inventoryProductModal" class="modal hidden"><div class="modal-backdrop" data-close-inventory-modal></div><div class="modal-card inventory-modal-card"><button class="modal-close" data-close-inventory-modal>×</button><div id="inventoryProductModalBody"></div></div></div>
   <div id="wbOrderModal" class="modal hidden"><div class="modal-backdrop" data-close-order-modal></div><div class="modal-card"><button class="modal-close" data-close-order-modal>×</button><div id="wbOrderModalBody"></div></div></div>
@@ -893,11 +1293,10 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
   <script src="/static/r145f25-core.js?v=r145f44"></script>
   <script src="/static/r145f24-ui.js?v=r145f24"></script>
   <link rel="stylesheet" href="/static/r145f26.css?v=r145f26"/>
-  <link rel="stylesheet" href="/static/zipline-fc-theme.css?v=zip5"/>
   <script src="/static/r145f26-draft-store.js?v=r145f26"></script>
   <script src="/static/r145f26-cards.js?v=r145f26"></script>
   <script src="/static/r145f32-queue.js?v=r145f32"></script>
-  <script src="/static/app-r145f39.js?v=r145f44"></script>
+  <script src="/static/app-r145f39.js?v=r145f51-md-ui4"></script>
   <script src="/static/r145f42-fast.js?v=r145f52"></script>
   <script src="/static/r145f25-ui.js?v=r145f25"></script>
   <script src="/static/r145f22-ui.js?v=r145f22"></script>
@@ -912,7 +1311,8 @@ body.fc-embed .topbar .user-box #logoutBtn{display:none!important}
   <script src="/static/r145f39-controls.js?v=r145f39"></script>
 <script src="/static/r145f54-browser-receiving.js?v=r145f54"></script>
 <script src="/static/zipline-embed.js?v=zip2"></script>
-<script src="/static/zipline-shell.js?v=zip5"></script>
+<script src="/static/zipline-shell.js?v=zip9"></script>
 <script src="/static/zipline-server-store.js?v=zip3"></script>
+<script src="/static/print-gateway-ui.js?v=pgw1"></script>
 </body>
 </html>

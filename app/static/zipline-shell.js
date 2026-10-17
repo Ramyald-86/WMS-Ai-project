@@ -7,6 +7,8 @@
   var HUB = "/zipline/";
   var SIDEBAR_W = 264;
   var THEME_KEY = "zipline_theme";
+  var modulesApiRef = null;
+  var spaNavSeq = 0;
 
   function readTheme() {
     try {
@@ -45,8 +47,48 @@
     return (qs("page") || "").trim() || (location.hash || "").replace(/^#/, "").trim();
   }
 
+  function resolveFcPage(page) {
+    return page === "palletreceive" ? "receivinghome" : page;
+  }
+
+  function waitReceivingReady(ms) {
+    ms = ms || 12000;
+    if (
+      window.FCTsdReceivingReady &&
+      document.getElementById("page-receivinghome") &&
+      document.getElementById("page-receivinghome").dataset.r69Ready === "1"
+    ) {
+      return Promise.resolve();
+    }
+    if (window.FCR145F9Navigation && typeof window.FCR145F9Navigation.waitReceivingReady === "function") {
+      return window.FCR145F9Navigation.waitReceivingReady(ms);
+    }
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        clearInterval(poll);
+        window.removeEventListener("fc:receiving-ready", finish);
+        resolve();
+      }
+      var timer = setTimeout(finish, ms);
+      var poll = setInterval(function () {
+        if (
+          window.FCTsdReceivingReady &&
+          document.getElementById("page-receivinghome") &&
+          document.getElementById("page-receivinghome").dataset.r69Ready === "1"
+        ) {
+          finish();
+        }
+      }, 40);
+      window.addEventListener("fc:receiving-ready", finish);
+    });
+  }
+
   function applyDeepLink() {
-    var deep = deepPage();
+    var deep = resolveFcPage(deepPage());
     if (!deep) return;
     try {
       localStorage.setItem("fc_active_page", deep);
@@ -98,10 +140,23 @@
     return p === modPath || p.indexOf(modPath + "/") === 0;
   }
 
+  function isEmbedMode() {
+    try {
+      if (new URLSearchParams(location.search).get("embed") === "1") return true;
+    } catch (_) {}
+    return false;
+  }
+
   function ensureStyles() {
     if (document.getElementById("zip-shell-css")) return;
     var css = document.createElement("style");
     css.id = "zip-shell-css";
+    var contentShift =
+      "margin-left:" +
+      SIDEBAR_W +
+      "px!important;width:calc(100% - " +
+      SIDEBAR_W +
+      "px)!important;max-width:none!important;box-sizing:border-box!important;";
     css.textContent =
       "html.fc-zip-shell,html.fc-zip-shell body{min-height:100%;}" +
       "html.fc-zip-shell .sidebar:not(.zip-shell-side)," +
@@ -113,15 +168,16 @@
       "html.fc-zip-shell .portal-main," +
       "html.fc-zip-shell body>main," +
       "html.fc-zip-shell body>.topbar+*," +
-      "html.fc-zip-shell .content{margin-left:" +
-      SIDEBAR_W +
-      "px!important;width:auto!important;max-width:none;}" +
-      "html.fc-zip-shell .wf-head,html.fc-zip-shell .portal-head,html.fc-zip-shell body>header.topbar," +
-      "html.fc-zip-shell .topbar{margin-left:" +
-      SIDEBAR_W +
-      "px!important;width:calc(100% - " +
-      SIDEBAR_W +
-      "px)!important;box-sizing:border-box;}" +
+      "html.fc-zip-shell .content{" +
+      contentShift +
+      "margin-right:0!important;}" +
+      /* Любой верхний header на отдельных страницах (терминал / workflow), не только .topbar */
+      "html.fc-zip-shell .wf-head,html.fc-zip-shell .portal-head,html.fc-zip-shell body>header," +
+      "html.fc-zip-shell body>header.topbar,html.fc-zip-shell .topbar{" +
+      contentShift +
+      "}" +
+      "html.fc-zip-shell .zip-embed-page.page.active{display:flex!important;flex-direction:column;min-height:calc(100vh - 72px);padding:0;margin:0;gap:0;}" +
+      "html.fc-zip-shell .zip-embed-frame{flex:1 1 auto;width:100%;min-height:calc(100vh - 88px);border:0;background:transparent;}" +
       ".zip-shell-side{position:fixed;left:0;top:0;bottom:0;width:" +
       SIDEBAR_W +
       "px;z-index:10050;display:flex;flex-direction:column;" +
@@ -194,15 +250,155 @@
       "border-color:#dfe4ec!important;color:#475569!important;background:transparent!important;}" +
       "html[data-theme=light] .zip-shell-burger{" +
       "border-color:#dfe4ec!important;background:#fff!important;color:#172033!important;}" +
+      ".zip-main-loading{position:fixed;left:" +
+      SIDEBAR_W +
+      "px;top:0;right:0;bottom:0;z-index:10040;display:none;flex-direction:column;" +
+      "align-items:center;justify-content:center;gap:14px;background:rgba(10,10,11,.72);" +
+      "backdrop-filter:blur(6px);color:#F5F7FB;font:600 15px Inter,\"Segoe UI\",Arial,sans-serif;}" +
+      ".zip-main-loading.show{display:flex;}" +
+      ".zip-main-loading-spinner{width:36px;height:36px;border-radius:50%;" +
+      "border:3px solid #2C3040;border-top-color:#8B62FF;animation:zip-spin .7s linear infinite;}" +
+      "@keyframes zip-spin{to{transform:rotate(360deg);}}" +
+      "html[data-theme=light] .zip-main-loading{background:rgba(245,247,251,.86);color:#172033;}" +
+      "html[data-theme=light] .zip-main-loading-spinner{border-color:#dbe3ee;border-top-color:#4f46e5;}" +
       "@media(max-width:900px){" +
       ".zip-shell-burger{display:block;}" +
       ".zip-shell-side{transform:translateX(-105%);transition:transform .2s ease;}" +
       ".zip-shell-side.open{transform:translateX(0);}" +
+      ".zip-main-loading{left:0;}" +
       "html.fc-zip-shell .main,html.fc-zip-shell .wf-main,html.fc-zip-shell .portal-main," +
-      "html.fc-zip-shell body>main,html.fc-zip-shell .topbar,html.fc-zip-shell .wf-head," +
-      "html.fc-zip-shell .portal-head{margin-left:0!important;width:100%!important;}" +
+      "html.fc-zip-shell body>main,html.fc-zip-shell body>header,html.fc-zip-shell .topbar," +
+      "html.fc-zip-shell .wf-head,html.fc-zip-shell .portal-head{margin-left:0!important;width:100%!important;}" +
       "}";
     document.head.appendChild(css);
+  }
+
+  function ensureLoadingOverlay() {
+    var el = document.getElementById("zip-main-loading");
+    if (el) return el;
+    el = document.createElement("div");
+    el.id = "zip-main-loading";
+    el.className = "zip-main-loading";
+    el.setAttribute("role", "status");
+    el.setAttribute("aria-live", "polite");
+    el.innerHTML =
+      '<div class="zip-main-loading-spinner" aria-hidden="true"></div>' +
+      "<div>Загрузка данных</div>";
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function showMainLoading() {
+    ensureLoadingOverlay().classList.add("show");
+  }
+
+  function hideMainLoading() {
+    var el = document.getElementById("zip-main-loading");
+    if (el) el.classList.remove("show");
+  }
+
+  window.ZipMainLoading = { show: showMainLoading, hide: hideMainLoading };
+
+  function isFcRootPath() {
+    var p = pathOnly();
+    return p === "/" || p === "";
+  }
+
+  function canSpaNavigate(mod) {
+    if (!mod || mod.kind === "soon" || mod.kind === "link") return false;
+    if (!isFcRootPath()) return false;
+    var modPath = (mod.path || "/").replace(/\/$/, "") || "/";
+    return modPath === "/" && !!mod.page;
+  }
+
+  function setActiveModule(moduleId) {
+    var nav = document.getElementById("zip-shell-nav");
+    if (!nav) return;
+    var buttons = nav.querySelectorAll("button[data-module]");
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      if (btn.classList.contains("soon")) continue;
+      btn.classList.toggle("active", btn.dataset.module === moduleId);
+    }
+  }
+
+  function waitWithTimeout(promise, ms) {
+    return Promise.race([
+      Promise.resolve(promise).catch(function () {}),
+      new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+      }),
+    ]);
+  }
+
+  async function openFcPage(page) {
+    page = resolveFcPage(page);
+    if (page === "receivinghome") {
+      await waitReceivingReady(12000);
+      try {
+        if (window.FCReceiving && typeof window.FCReceiving.setup === "function") {
+          window.FCReceiving.setup();
+        }
+      } catch (_) {}
+    }
+    if (window.FCR145F9Navigation && typeof window.FCR145F9Navigation.open === "function") {
+      await window.FCR145F9Navigation.open(page);
+      return;
+    }
+    if (typeof go === "function") {
+      var result = go(page);
+      if (result && typeof result.then === "function") await result;
+    }
+    if (window.__fcPageReady && typeof window.__fcPageReady.then === "function") {
+      await window.__fcPageReady;
+    }
+  }
+
+  async function navigateInApp(mod) {
+    var page = resolveFcPage(mod.page || "dashboard");
+    var seq = ++spaNavSeq;
+    var started = Date.now();
+    showMainLoading();
+    try {
+      var url = buildUrl(mod);
+      try {
+        history.pushState({ zipSpa: true, module: mod.id, page: page }, "", url);
+      } catch (_) {}
+      try {
+        localStorage.setItem("fc_active_page", page);
+      } catch (_) {}
+      setActiveModule(mod.id);
+      await openFcPage(page);
+      if (window.__fcPageReady && typeof window.__fcPageReady.then === "function") {
+        await waitWithTimeout(window.__fcPageReady, 10000);
+      }
+    } catch (_) {
+      /* keep overlay dismissal in finally */
+    } finally {
+      if (seq !== spaNavSeq) return;
+      var elapsed = Date.now() - started;
+      if (elapsed < 220) {
+        await new Promise(function (resolve) {
+          setTimeout(resolve, 220 - elapsed);
+        });
+      }
+      if (seq === spaNavSeq) hideMainLoading();
+      var side = document.getElementById("zip-shell-side");
+      if (side) side.classList.remove("open");
+    }
+  }
+
+  function navigateModule(mod) {
+    // SPA only inside the FC warehouse app when go() is already available.
+    if (
+      canSpaNavigate(mod) &&
+      (typeof go === "function" ||
+        (window.FCR145F9Navigation && typeof window.FCR145F9Navigation.open === "function"))
+    ) {
+      navigateInApp(mod);
+      return;
+    }
+    location.href = buildUrl(mod);
   }
 
   function loadRegistry(cb) {
@@ -211,7 +407,7 @@
       return;
     }
     var s = document.createElement("script");
-    s.src = "/zipline/shared/module-registry.js?v=zip-direct1";
+    s.src = "/zipline/shared/module-registry.js?v=zip-direct2";
     s.onload = function () {
       cb(window.ZiplineModules || null);
     };
@@ -242,12 +438,37 @@
         } else {
           if (mod.id === activeId || matchModule(mod)) btn.className = "active";
           btn.addEventListener("click", function () {
-            location.href = buildUrl(mod);
+            navigateModule(mod);
           });
         }
         wrap.appendChild(btn);
       });
       host.appendChild(wrap);
+    });
+  }
+
+  function bindPopState(modulesApi) {
+    if (window.__zipSpaPopBound) return;
+    window.__zipSpaPopBound = true;
+    window.addEventListener("popstate", function () {
+      if (!isFcRootPath()) return;
+      var page = deepPage() || "dashboard";
+      var mod =
+        (modulesApi &&
+          (modulesApi.MODULES || []).find(function (m) {
+            return m.page === page && ((m.path || "/").replace(/\/$/, "") || "/") === "/";
+          })) ||
+        null;
+      if (mod) setActiveModule(mod.id);
+      else setActiveModule("");
+      var seq = ++spaNavSeq;
+      showMainLoading();
+      openFcPage(page)
+        .catch(function () {})
+        .finally(function () {
+          if (seq !== spaNavSeq) return;
+          hideMainLoading();
+        });
     });
   }
 
@@ -299,8 +520,11 @@
 
   function mountShell(modulesApi, me) {
     ensureStyles();
+    ensureLoadingOverlay();
     document.documentElement.classList.add("fc-zip-shell", "fc-embed");
     document.body.classList.add("fc-zip-shell", "fc-embed");
+    modulesApiRef = modulesApi || modulesApiRef;
+    bindPopState(modulesApiRef);
 
     if (document.getElementById("zip-shell-side")) return;
 
@@ -371,6 +595,12 @@
   }
 
   function boot() {
+    // Встроенный режим (iframe из основного SPA) — без второго сайдбара.
+    if (isEmbedMode()) {
+      document.documentElement.classList.add("fc-zip-embed");
+      applyTheme(readTheme());
+      return;
+    }
     document.documentElement.classList.add("fc-zip-shell");
     applyDeepLink();
     loadRegistry(function (modulesApi) {

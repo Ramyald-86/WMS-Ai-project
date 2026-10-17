@@ -18,10 +18,21 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.routers.r145f30_receiving import install_schema as install_manual_receipt_schema
 from app.services.r145f25_places import scope
 
 router = APIRouter(tags=["r145f52"])
 MARKER = "FC_R145F52_BROWSER_MASTER_RECOVERY_CARD"
+_schema_ready = False
+
+
+def _ensure_schema(db: Session) -> None:
+    global _schema_ready
+    if _schema_ready:
+        return
+    # Adds worker column (and base r145f27 tables) if an older DB never ran r145f30 endpoints.
+    install_manual_receipt_schema(db)
+    _schema_ready = True
 
 
 def _s(v, limit=512):
@@ -119,6 +130,7 @@ def _current_draft(db: Session, p: Base52) -> dict | None:
 
 
 def _ensure_draft(db: Session, p: Base52) -> dict:
+    _ensure_schema(db)
     scope(db, p.client_id, p.warehouse_id)
     worker = _s(p.worker, 255)
     if not worker:
@@ -131,13 +143,14 @@ def _ensure_draft(db: Session, p: Base52) -> dict:
     if current:
         return current
     rid = str(uuid.uuid4())
+    # reference is NOT NULL in older schemas; empty string is the intended default.
     db.execute(text("""
         INSERT INTO fc_r145f27_manual_receipts
           (id,client_id,warehouse_id,actor,worker,reference,status)
         VALUES(:id,:c,:w,:actor,:worker,:ref,'DRAFT')
     """), {
         "id": rid, "c": str(p.client_id), "w": str(p.warehouse_id),
-        "actor": worker or "admin", "worker": worker, "ref": _s(p.reference, 255) or None,
+        "actor": worker or "admin", "worker": worker, "ref": _s(p.reference, 255),
     })
     db.flush()
     row = _receipt(db, p, rid)
@@ -178,6 +191,7 @@ def _req_id(token: str, revision: int, key: tuple[str, str, str], after: int) ->
 @router.post("/r145f52/manual-drafts/current")
 def current(payload: Base52, db: Session = Depends(get_db)):
     started = time.perf_counter()
+    _ensure_schema(db)
     drafts = _drafts(db, payload)
     rec = _current_draft(db, payload)
     snap = _snapshot(db, payload, rec["id"]) if rec else None

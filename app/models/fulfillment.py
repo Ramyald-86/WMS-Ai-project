@@ -21,7 +21,19 @@ from app.models.common import TimestampMixin, UUIDPrimaryKeyMixin
 
 FULFILLMENT_STATUSES = ("DRAFT", "ONBOARDING", "ACTIVE", "SUSPENDED", "ARCHIVED")
 WAREHOUSE_KINDS = ("MAIN", "FBS", "PVZ", "TRANSIT", "DEFECT", "OTHER")
-USER_ROLES = ("FC_ADMIN", "WAREHOUSE", "PICKER", "PACKER", "WB_OPERATOR", "VIEWER")
+USER_ROLES = (
+    "FC_ADMIN",
+    "WAREHOUSE",
+    "PICKER",
+    "PACKER",
+    "WB_OPERATOR",
+    "VIEWER",
+    # TZ §1.3 template roles
+    "OPERATOR",
+    "SUPERVISOR",
+    "WAREHOUSE_MANAGER",
+    "ACCOUNTANT",
+)
 
 
 class Fulfillment(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -118,6 +130,9 @@ class FulfillmentUser(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[str] = mapped_column(String(32), nullable=False, default="FC_ADMIN")
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    permissions: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    modules: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    pin_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     must_change_password: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

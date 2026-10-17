@@ -53,20 +53,43 @@ def logout(response: Response):
 
 
 @router.get("/me")
-def me(request: Request):
+def me(request: Request, db: Session = Depends(get_db)):
     # Prefer middleware-hydrated state when present; fall back to cookie parse.
     if getattr(request.state, "username", None):
-        return {
+        view = {
             "username": request.state.username,
             "principal": getattr(request.state, "auth_principal", None),
             "role": getattr(request.state, "auth_role", None),
             "fulfillment_id": getattr(request.state, "auth_fulfillment_id", None),
             "user_id": getattr(request.state, "auth_user_id", None),
         }
-    session = read_session_token(request.cookies.get("fc_session"), settings.app_secret_key)
-    if not session:
-        raise HTTPException(status_code=401, detail="Требуется вход")
-    view = session_public_view(session)
-    if session_principal(session) == "platform" and not view.get("role"):
-        view["role"] = "PLATFORM_ADMIN"
+    else:
+        session = read_session_token(request.cookies.get("fc_session"), settings.app_secret_key)
+        if not session:
+            raise HTTPException(status_code=401, detail="Требуется вход")
+        view = session_public_view(session)
+        if session_principal(session) == "platform" and not view.get("role"):
+            view["role"] = "PLATFORM_ADMIN"
+    # Attach modular permissions (TZ §1.3) when schema is available.
+    try:
+        from app.services.zipline_permissions import modules_for_permissions, permissions_for_role
+        from app.services.zipline_tz_core import install_zipline_tz_schema
+        from sqlalchemy import text
+
+        role = view.get("role")
+        if role == "PLATFORM_ADMIN" or view.get("principal") == "platform":
+            perms = permissions_for_role("PLATFORM_ADMIN")
+        elif view.get("user_id"):
+            install_zipline_tz_schema(db)
+            row = db.execute(
+                text("SELECT role, permissions FROM fulfillment_users WHERE id = CAST(:id AS uuid)"),
+                {"id": view["user_id"]},
+            ).mappings().first()
+            perms = permissions_for_role((row or {}).get("role") or role, (row or {}).get("permissions"))
+        else:
+            perms = permissions_for_role(role)
+        view["permissions"] = perms
+        view["modules"] = modules_for_permissions(perms)
+    except Exception:
+        pass
     return view

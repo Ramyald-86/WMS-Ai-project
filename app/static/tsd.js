@@ -14,7 +14,7 @@ const state={
 };
 const scanner={buffer:'',bufferTimer:null,inputTimer:null,lastCode:'',lastAt:0,audio:null,lastInputValue:'',pollTimer:null};
 // FC_R145F20_RECEIVING_SCREEN_ISOLATION: receiving is a first-class screen.
-const screens=['setup','pick','move','work','workhistory','transit','boxreceive','receivegoods'];
+const screens=['setup','pick','move','work','workhistory','transit','boxreceive','receivegoods','printbind'];
 
 function scopeKey(){return [$('clientSelect')?.value||'',$('warehouseSelect')?.value||'',$('pickerInput')?.value.trim()||'',$('assignmentKind')?.value||'AUTO'].join('|');}
 function normalizeBoxScan(raw){const ru='ёйцукенгшщзхъфывапролджэячсмитьбюЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ',en='`qwertyuiop[]asdfghjkl;\'zxcvbnm,.~QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>';return String(raw||'').split('').map(c=>ru.includes(c)?en[ru.indexOf(c)]:c).join('');}
@@ -547,7 +547,14 @@ async function manualConfirm(){
 }
 async function skipCurrent(){
   const t=state.session?.current;if(!t||!isWarehousePick())return;
-  try{const fresh=await api(`/warehouse/picks/${state.session.session.id}/skip`,{method:'POST',body:JSON.stringify({task_key:t.task_key,actor:state.picker})});feedback('ok','Позиция пропущена');state.verifiedLocationId='';state.verifiedSourceKey='';render(fresh);persistRuntime();}
+  // TZ AC-10: skip without reason is forbidden → PROBLEM/EXCEPTION
+  const reason=prompt('Причина пропуска (обязательно):\n• нет товара\n• брак\n• повреждение\n• нечитаемый код\n• другое');
+  if(!reason||!String(reason).trim()){feedback('error','Пропуск без причины запрещён');msg($('pickMsg'),'Укажите причину — иначе позиция не будет пропущена.','error');return;}
+  try{
+    const fresh=await api(`/warehouse/picks/${state.session.session.id}/skip`,{method:'POST',body:JSON.stringify({task_key:t.task_key,actor:state.picker,reason:String(reason).trim(),problem:true})});
+    feedback('ok','Позиция → ПРОБЛЕМА');state.verifiedLocationId='';state.verifiedSourceKey='';render(fresh);persistRuntime();
+    try{await api('/zipline/events',{method:'POST',body:JSON.stringify({event_type:'Picking.Exception',reason:String(reason).trim(),payload:{task_key:t.task_key}})});}catch(_ze){}
+  }
   catch(e){msg($('pickMsg'),e.message,'error');feedback('error',e.message);}
 }
 

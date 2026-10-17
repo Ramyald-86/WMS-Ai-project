@@ -19,8 +19,9 @@ class ClientRead(ORMModel):
 
 
 class WarehouseCreate(BaseModel):
-    code: str = Field(min_length=1, max_length=64)
     name: str = Field(min_length=1, max_length=255)
+    # Optional for API/back-compat; UI no longer asks for it — server generates WH_… like clients.
+    code: str | None = Field(default=None, max_length=64)
 
 
 class WarehouseRead(ORMModel):

@@ -5,6 +5,10 @@
 body{font-family:Arial,sans-serif;background:#f6f7f9;margin:0;color:#101828}.wrap{max-width:1200px;margin:30px auto;padding:0 18px}.top{display:flex;justify-content:space-between;align-items:center}.card{background:#fff;border:1px solid #eaecf0;border-radius:16px;padding:18px;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}input,select,button{font:inherit;padding:10px;border-radius:9px;border:1px solid #d0d5dd}button{cursor:pointer;font-weight:700}.primary{background:#6c4cff;color:#fff;border-color:#6c4cff}.danger{background:#fff0f0;color:#b42318}.row{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1.2fr;gap:10px;align-items:center;padding:12px 0;border-top:1px solid #eaecf0}.small{color:#667085;font-size:13px}.ok{color:#067647}.bad{color:#b42318}.access{display:none;margin-top:12px;padding:12px;background:#f9fafb}.access.open{display:block}.access-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.choices{max-height:220px;overflow:auto;border:1px solid #e4e7ec;padding:8px;border-radius:9px}.choices label{display:block;padding:5px}
 @media(max-width:850px){.grid,.row,.access-grid{grid-template-columns:1fr}}
 </style></head><body><div class="wrap"><div class="top"><div><h1>FulfillCore Commercial</h1><div class="small">Super Admin — кабинеты и подписки</div></div><a href="/">← FulfillCore</a></div>
+<div class="card"><h2>Тариф подписки ZIPLINE (Super Admin)</h2>
+<p class="small">Стартовый SaaS-тариф хранится в настройках, не hard-code. По умолчанию 10&nbsp;000&nbsp;₽/мес за фулфилмент.</p>
+<div class="grid"><input id="feeAmount" type="number" min="0" step="100" placeholder="Сумма, ₽"><input id="feeCurrency" value="RUB" maxlength="8"><button class="primary" onclick="saveFee()">Сохранить тариф</button><div id="feeMsg" class="small"></div></div>
+</div>
 <div class="card"><h2>Создать владельца ФФ</h2><div class="grid"><input id="name" placeholder="Название ФФ"><input id="login" placeholder="Логин"><input id="pass" placeholder="Пароль"><input id="days" type="number" value="30" min="1"></div><p><button class="primary" onclick="createTenant()">Создать кабинет</button></p><div id="msg"></div></div>
 <div class="card"><div class="top"><h2>Фулфилменты</h2><button onclick="loadAll()">Обновить</button></div><div id="rows">Загрузка…</div></div></div>
 <script>
@@ -50,5 +54,22 @@ async function toggle(id,active){await api(`/commercial/admin/tenants/${id}/stat
 async function password(id){const p=prompt('Новый пароль (минимум 6 символов)');if(!p)return;await api(`/commercial/admin/tenants/${id}/password`,{method:'POST',body:JSON.stringify({password:p})});alert('Пароль изменён')}
 async function openAccess(id){const box=document.getElementById('a-'+id);if(box.classList.contains('open')){box.classList.remove('open');return}const a=await api(`/commercial/admin/tenants/${id}/access`);const c=new Set(a.client_ids),w=new Set(a.warehouse_ids);box.innerHTML=`<div class=access-grid><div><b>Клиенты</b><div class=choices>${clients.map(x=>`<label><input type=checkbox data-c value="${x.id}" ${c.has(String(x.id))?'checked':''}> ${esc(x.name)}</label>`).join('')}</div></div><div><b>Склады</b><div class=choices>${warehouses.map(x=>`<label><input type=checkbox data-w value="${x.id}" ${w.has(String(x.id))?'checked':''}> ${esc(x.name)}</label>`).join('')}</div></div></div><p><button class=primary onclick="saveAccess('${id}')">Сохранить доступы</button></p>`;box.classList.add('open')}
 async function saveAccess(id){const box=document.getElementById('a-'+id);const client_ids=[...box.querySelectorAll('[data-c]:checked')].map(x=>x.value),warehouse_ids=[...box.querySelectorAll('[data-w]:checked')].map(x=>x.value);await api(`/commercial/admin/tenants/${id}/access`,{method:'PUT',body:JSON.stringify({client_ids,warehouse_ids})});alert('Доступы сохранены');loadAll()}
+async function loadFee(){
+  try{
+    const f=await api('/zipline/platform/subscription-fee');
+    document.getElementById('feeAmount').value=f.amount??10000;
+    document.getElementById('feeCurrency').value=f.currency||'RUB';
+    document.getElementById('feeMsg').textContent='Текущий тариф: '+(f.amount??10000)+' '+(f.currency||'RUB')+'/мес';
+  }catch(e){document.getElementById('feeMsg').textContent=e.message||'Тариф недоступен (нужен platform admin)';}
+}
+async function saveFee(){
+  try{
+    const amount=parseInt(document.getElementById('feeAmount').value||'10000',10);
+    const currency=document.getElementById('feeCurrency').value.trim()||'RUB';
+    const f=await api('/zipline/platform/subscription-fee',{method:'PUT',body:JSON.stringify({amount,currency})});
+    document.getElementById('feeMsg').textContent='Сохранено: '+f.amount+' '+f.currency+'/мес';
+  }catch(e){document.getElementById('feeMsg').textContent=e.message||'Ошибка сохранения';}
+}
+loadFee();
 loadAll();
 </script></body></html>

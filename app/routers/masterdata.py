@@ -76,7 +76,11 @@ def list_clients(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/warehouses", response_model=WarehouseRead)
 def create_warehouse(payload: WarehouseCreate, request: Request, db: Session = Depends(get_db)):
-    obj = Warehouse(**payload.model_dump())
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="Укажите название склада")
+    code = (payload.code or "").strip() or f"WH_{uuid.uuid4().hex[:20].upper()}"
+    obj = Warehouse(code=code[:64], name=name)
     scope = get_request_scope(request)
     try:
         db.add(obj)

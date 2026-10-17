@@ -18,7 +18,15 @@ def admin(req):
     return str(actor)
 
 def record(c):return {'id':str(c.id),'name':c.name,'code':c.code,'is_active':c.is_active}
+
+def _ensure_client_audit(db):
+    # Lightweight bootstrap: full r145f25_scope_db.install() is not required to create a client.
+    db.execute(text('''CREATE TABLE IF NOT EXISTS fc_r145f25_client_audit (
+ id uuid PRIMARY KEY, client_id uuid NOT NULL, action text NOT NULL,
+ old_name text, new_name text, actor text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())'''))
+
 def audit(db,c,action,old,new,actor):
+    _ensure_client_audit(db)
     db.execute(text('INSERT INTO fc_r145f25_client_audit(id,client_id,action,old_name,new_name,actor) VALUES(:id,:c,:a,:o,:n,:u)'),{'id':str(uuid.uuid4()),'c':str(c),'a':action,'o':old,'n':new,'u':actor})
 
 @router.get('/masterdata/clients')

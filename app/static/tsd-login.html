@@ -1,1 +1,108 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Вход — FulfillCore ТСД</title><link rel="stylesheet" href="/static/tsd.css?v=r96"></head><body><header class="topbar"><b>FulfillCore ТСД</b></header><main><div class="hero"><h1>Вход на склад</h1><p>Используйте свой логин и пароль FulfillCore.</p></div><form id="loginForm"><label>Логин<input id="user" name="username" autocomplete="username" required></label><label>Пароль<input id="pass" name="password" type="password" autocomplete="current-password" required></label><button class="primary big" id="enter">Войти</button><p class="msg error" id="error" role="alert"></p></form><a href="/tsd/install">Скачать приложение</a></main><script>document.getElementById('loginForm').onsubmit=async e=>{e.preventDefault();const b=document.getElementById('enter'),m=document.getElementById('error');b.disabled=true;m.textContent='';try{const r=await fetch('/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('user').value.trim(),password:document.getElementById('pass').value})});const d=await r.json();if(!r.ok)throw Error(d.detail||'Не удалось войти');location.replace('/tsd')}catch(err){m.textContent=err.message}finally{b.disabled=false}};</script></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход — FulfillCore ТСД</title>
+  <link rel="stylesheet" href="/static/tsd.css?v=r96">
+  <style>
+    .tabs{display:flex;gap:8px;margin:0 0 16px}
+    .tabs button{flex:1}
+    .tabs button.active{outline:2px solid #2d6cdf}
+    .hint{font-size:13px;opacity:.75;margin-top:8px}
+  </style>
+</head>
+<body>
+<header class="topbar"><b>FulfillCore ТСД</b></header>
+<main>
+  <div class="hero">
+    <h1>Вход на склад</h1>
+    <p>QR сотрудника + PIN (Zero Install) или классический логин.</p>
+  </div>
+  <div class="tabs">
+    <button type="button" class="primary active" id="tabQr">QR + PIN</button>
+    <button type="button" class="secondary" id="tabPass">Логин / пароль</button>
+  </div>
+
+  <form id="qrForm">
+    <label>QR сотрудника (или вставьте токен)
+      <input id="qrToken" name="token" autocomplete="off" required placeholder="ZIPLINE-TSD:… или токен">
+    </label>
+    <label>PIN
+      <input id="pin" name="pin" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="one-time-code" required>
+    </label>
+    <button class="primary big" id="enterQr">Войти</button>
+    <p class="hint">Получите QR в кабинете сотрудника: GET /zipline/tsd/qr-token. PIN задаётся через POST /zipline/tsd/pin.</p>
+    <p class="msg error" id="errorQr" role="alert"></p>
+  </form>
+
+  <form id="loginForm" class="hidden">
+    <label>Логин<input id="user" name="username" autocomplete="username" required></label>
+    <label>Пароль<input id="pass" name="password" type="password" autocomplete="current-password" required></label>
+    <button class="primary big" id="enter">Войти</button>
+    <p class="msg error" id="error" role="alert"></p>
+  </form>
+  <a href="/tsd/install">Скачать приложение</a>
+</main>
+<script>
+(function(){
+  const qrForm=document.getElementById('qrForm');
+  const loginForm=document.getElementById('loginForm');
+  const tabQr=document.getElementById('tabQr');
+  const tabPass=document.getElementById('tabPass');
+  function showQr(){qrForm.classList.remove('hidden');loginForm.classList.add('hidden');tabQr.classList.add('active');tabPass.classList.remove('active');}
+  function showPass(){loginForm.classList.remove('hidden');qrForm.classList.add('hidden');tabPass.classList.add('active');tabQr.classList.remove('active');}
+  tabQr.onclick=showQr;tabPass.onclick=showPass;
+
+  function normalizeToken(raw){
+    let t=String(raw||'').trim();
+    if(t.toUpperCase().startsWith('ZIPLINE-TSD:')) t=t.slice('ZIPLINE-TSD:'.length);
+    return t.trim();
+  }
+
+  qrForm.onsubmit=async e=>{
+    e.preventDefault();
+    const b=document.getElementById('enterQr'),m=document.getElementById('errorQr');
+    b.disabled=true;m.textContent='';
+    try{
+      const deviceId=localStorage.getItem('fc_tsd_device')||('TSD-'+Math.random().toString(36).slice(2,10));
+      localStorage.setItem('fc_tsd_device',deviceId);
+      const r=await fetch('/zipline/tsd/login-qr-pin',{
+        method:'POST',credentials:'same-origin',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          token:normalizeToken(document.getElementById('qrToken').value),
+          pin:document.getElementById('pin').value.trim(),
+          device_id:deviceId
+        })
+      });
+      const d=await r.json();
+      if(!r.ok) throw Error(d.detail||'Не удалось войти по QR+PIN');
+      location.replace('/tsd');
+    }catch(err){m.textContent=err.message;}
+    finally{b.disabled=false;}
+  };
+
+  loginForm.onsubmit=async e=>{
+    e.preventDefault();
+    const b=document.getElementById('enter'),m=document.getElementById('error');
+    b.disabled=true;m.textContent='';
+    try{
+      const r=await fetch('/auth/login',{
+        method:'POST',credentials:'same-origin',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          username:document.getElementById('user').value.trim(),
+          password:document.getElementById('pass').value
+        })
+      });
+      const d=await r.json();
+      if(!r.ok) throw Error(d.detail||'Не удалось войти');
+      location.replace('/tsd');
+    }catch(err){m.textContent=err.message;}
+    finally{b.disabled=false;}
+  };
+})();
+</script>
+</body>
+</html>

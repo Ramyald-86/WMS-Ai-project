@@ -99,7 +99,7 @@ const state = {
   wbCredentialId: localStorage.getItem('fc_wb_credential') || '', wbProductCredentialId: localStorage.getItem('fc_wb_product_credential') || '',
   ozonCredentialId: localStorage.getItem('fc_ozon_credential') || '', ozonWarehouseId: localStorage.getItem(scopedStorageKey('fc_ozon_warehouse')) || '',
   wbOrderFilter: localStorage.getItem(scopedStorageKey('fc_wb_order_filter')) || localStorage.getItem('fc_wb_order_filter') || '', wbActivePackingOrder: null, wbActivePackingCredentialId: '', wbOrderCounts: {},
-  activePage: localStorage.getItem('fc_active_page') || 'dashboard',
+  activePage: (()=>{const p=localStorage.getItem('fc_active_page')||'dashboard';return p==='palletreceive'?'receivinghome':p;})(),
   wbWarehouseFilter: localStorage.getItem(scopedStorageKey('fc_wb_warehouse_filter')) || localStorage.getItem('fc_wb_warehouse_filter') || '',
   wbPageSize: Number(localStorage.getItem('fc_wb_page_size') || '50'), wbPage: 1, wbPages: 1, wbTotal: 0,
   wbColumns: readStoredJson('fc_wb_columns',['status','order','warehouse','article','name','size','barcode','reserved','supply','chz','label','created','actions']),
@@ -150,7 +150,7 @@ if(localStorage.getItem('fc_wb_columns_schema')!=='0.7.8.31'){
 }
 
 const titles = {
-  dashboard:'Главная', receive:'Новая приёмка · вручную', palletreceive:'Приёмка', bulkimport:'Новая приёмка · Excel', inventory:'Остатки',
+  dashboard:'Главная', receive:'Новая приёмка · вручную', palletreceive:'Приёмка', receivinghome:'Приёмка', receiving_terminal:'Терминал приёмки', warehouse_workflow:'Складской workflow', bulkimport:'Новая приёмка · Excel', inventory:'Остатки',
   locations:'Адресное хранение', containers:'Короба', storage:'Хранение', move:'Перемещение', transit:'Транзитный склад', defectstorage:'Брак · хранение', marketplaces:'Wildberries FBS',
   ozon:'Ozon FBS', products:'Карточки WB', account:'Личный кабинет',
   ship:'Отгрузка', operations:'История приёмки', finance:'Финансы и аналитика', financehistory:'История начислений', warehousework:'Сборка', printsettings:'Настройки печати', masterdata:'Справочники'
@@ -331,21 +331,47 @@ function installAccountClientAccessTab(){
   selectTab(localStorage.getItem('fc_account_subtab')==='client'?'client':'integrations');
 }
 function updateAccountClientAccessContext(){const host=document.querySelector('[data-account-client-name]');if(!host)return;const c=state.clients.find(x=>String(x.id)===String(state.clientId||''));host.textContent='Клиент: '+(c?.name||'не выбран');}
+function zipEmbedUrl(page){
+  const frame=document.querySelector(`#page-${page} iframe.zip-embed-frame`);
+  const base=frame?.getAttribute('data-zip-embed-src')||'';
+  if(!base)return '';
+  const url=new URL(base,location.origin);
+  url.searchParams.set('embed','1');
+  if(state.clientId)url.searchParams.set('client_id',String(state.clientId));
+  if(state.warehouseId)url.searchParams.set('warehouse_id',String(state.warehouseId));
+  return url.pathname+url.search;
+}
+function ensureZipEmbedFrame(page){
+  if(page!=='receiving_terminal'&&page!=='warehouse_workflow')return;
+  const frame=document.querySelector(`#page-${page} iframe.zip-embed-frame`);
+  if(!frame)return;
+  const want=zipEmbedUrl(page);
+  if(want&&frame.getAttribute('src')!==want)frame.setAttribute('src',want);
+}
+window.addEventListener('message',e=>{
+  if(e.origin!==location.origin||!e.data||typeof e.data!=='object')return;
+  if(e.data.type==='fc-workflow-go'&&e.data.page){
+    const page=e.data.page==='palletreceive'?'receivinghome':e.data.page;
+    try{go(page);}catch(_){}
+  }
+});
 function go(page){
   if(!document.getElementById(`page-${page}`)) page='dashboard';
   state.activePage=page;fcR20Remember('fc_active_page',page);
   document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===`page-${page}`));
   document.querySelectorAll('#mainNav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
   $('pageTitle').textContent=titles[page]||page;
+  ensureZipEmbedFrame(page);
   if(['receive','palletreceive','inventory','locations','containers','storage','move','transit','defectstorage'].includes(page)){state.warehouseMenuOpen=true;fcR20Remember('fc_warehouse_menu_open','1');applyWarehouseMenu();}
   stopWbLiveMode();
-  if(page==='inventory')loadInventoryCatalog().catch(e=>toast(e.message,true));
-  if(page==='containers')loadContextData().catch(e=>toast(e.message,true));
-  if(page==='storage')window.FCStorage?.refresh?.();
-  if(page==='products'){restoreWbProductsCacheImmediately();loadWbProducts().catch(e=>toast(e.message,true));}
+  const jobs=[];
+  if(page==='inventory')jobs.push(loadInventoryCatalog().catch(e=>toast(e.message,true)));
+  if(page==='containers')jobs.push(loadContextData().catch(e=>toast(e.message,true)));
+  if(page==='storage'){try{const r=window.FCStorage?.refresh?.();if(r&&typeof r.then==='function')jobs.push(r.catch(()=>{}));}catch(_){}}
+  if(page==='products'){restoreWbProductsCacheImmediately();jobs.push(loadWbProducts().catch(e=>toast(e.message,true)));}
   if(page==='account'){installAccountClientAccessTab();updateAccountClientAccessContext();}
   if(['marketplaces','ozon','products','account'].includes(page)){
-    loadMarketplaceCredentials().then(async()=>{
+    jobs.push(loadMarketplaceCredentials().then(async()=>{
       if(page==='marketplaces'){
         document.querySelectorAll('#wbStatusTabs [data-wb-filter]').forEach(x=>x.classList.toggle('active',x.dataset.wbFilter===state.wbOrderFilter));
         // Draw the last known local/cached state immediately. External synchronization
@@ -356,10 +382,15 @@ function go(page){
         startWbLiveMode();
         setTimeout(()=>$('wbPackProduct')?.focus(),80);
       }
-      if(page==='products')loadWbProducts().catch(e=>toast(e.message,true));
+      if(page==='products')await loadWbProducts().catch(e=>toast(e.message,true));
       if(page==='ozon' && $('ozonCredentialSelect')?.value){await loadOzonWarehouses();await loadOzonPostings();}
-    }).catch(e=>toast(e.message,true));
+    }).catch(e=>toast(e.message,true)));
   }
+  const ready=Promise.allSettled(jobs).then(()=>{
+    try{window.dispatchEvent(new CustomEvent('fc:page-ready',{detail:{page:state.activePage}}));}catch(_){}
+  });
+  window.__fcPageReady=ready;
+  return ready;
 }
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
@@ -440,24 +471,22 @@ async function loadContexts({silent=false}={}){
   if(state.warehouseId)fcR20Remember('fc_warehouse',state.warehouseId);
   renderContextSelects();
 
+  // Show the deep-linked / remembered page immediately. Do not wait for context
+  // payloads — otherwise every ZIPLINE sidebar navigation flashes dashboard first.
+  let targetPage=state.activePage==='inventory'&&state.r65FbsOpen?'inventoryfbs':state.activePage||'dashboard';
+  if(targetPage==='palletreceive')targetPage='receivinghome';
   if(!state.clientId||!state.warehouseId){
     renderAll();
+    try{go(targetPage);}catch(_){}
     if(errors.length&&!silent)toast('Клиент или склад временно не загрузился. FulfillCore повторит подключение автоматически.',true);
     clearTimeout(state.contextRetryTimer);state.contextRetryTimer=setTimeout(()=>loadContexts({silent:true}).catch(()=>{}),10000);
     return;
   }
-  // FC_K9R23_INVENTORY_BOOT_PARALLEL: the stock page may begin its lightweight
-  // first-paint request immediately.  It must not wait for locations, containers,
-  // occupancy and every SKU reference request to finish before showing physical stock.
-  const targetPage=state.activePage==='inventory'&&state.r65FbsOpen?'inventoryfbs':state.activePage||'dashboard';
+  // FC_K9R23_INVENTORY_BOOT_PARALLEL: first paint must not wait for locations,
+  // containers, occupancy and every SKU reference request.
   const contextPromise=loadContextData({quiet:silent});
-  if(['inventory','inventoryfbs','mainstock','stockhome','fbspicks','locations','containers'].includes(targetPage)){
-    go(targetPage);
-    await contextPromise;
-  }else{
-    await contextPromise;
-    go(targetPage);
-  }
+  go(targetPage);
+  await contextPromise;
   scheduleWorkstationProfileSync();
   if(errors.length){
     if(!silent)toast('Часть справочников ответила с задержкой. Использованы последние сохранённые клиент и склад; идёт фоновое обновление.',true);
@@ -468,6 +497,7 @@ function renderContextSelects(){
   const clientSelect=$('clientSelect'),warehouseSelect=$('warehouseSelect');
   if(clientSelect){clientSelect.innerHTML=state.clients.length?state.clients.map(x=>`<option value="${esc(normalizeContextId(x.id))}">${esc(x.name)}</option>`).join(''):'<option value="">Нет клиентов</option>';if(state.clientId&&state.clients.some(x=>sameContextId(x.id,state.clientId)))clientSelect.value=normalizeContextId(state.clientId);}
   if(warehouseSelect){warehouseSelect.innerHTML=state.warehouses.length?state.warehouses.map(x=>`<option value="${esc(normalizeContextId(x.id))}">${esc(x.name)}</option>`).join(''):'<option value="">Нет складов</option>';if(state.warehouseId&&state.warehouses.some(x=>sameContextId(x.id,state.warehouseId)))warehouseSelect.value=normalizeContextId(state.warehouseId);}
+  if(typeof renderMasterdataDirectories==='function')renderMasterdataDirectories();
 }
 // FC_R130_FAST_CONTEXT_SNAPSHOT: address storage opens from the last local snapshot,
 // then PostgreSQL refreshes in the background. This is display acceleration only;
@@ -2345,7 +2375,9 @@ async function ensureContainer(raw,location){
   c=await api('/inventory/containers/ensure',{method:'POST',body:JSON.stringify({client_id:state.clientId,warehouse_id:state.warehouseId,location_id:location.id,barcode:code,name:code,container_type:'BOX'})});state.containers.push(c);return c;
 }
 
-$('clientSelect').addEventListener('change',async e=>{state.clientId=e.target.value||null;fc27ServerDraft=null;fc27ServerDraftContext='';state.bulkReceivingHistory=[];state.bulkReceivingHistoryLoaded=false;state.bulkReceivingHistoryLoading=false;state.bulkReceivingHistoryContextKey='';receivingHistoryOpenOperationId='';const __boxPanel=$('containerDetailPanel');if(__boxPanel){__boxPanel.classList.add('hidden');__boxPanel.innerHTML='';delete __boxPanel.dataset.containerId;}state.inventoryCatalogLoaded=false;state.inventoryCatalog=[];state.fbsStockStatus={};state.inventoryWbControl={};state.wbLiveStock={};state.wbLiveStockSummary=null;state.wbLiveStockCheckedAt=null;state.wbLiveStockError='';selectedLocationIds.clear();selectedContainerIds.clear();resetLocationBrowser(false);fcR20Remember('fc_client',state.clientId||'');currentPalletReceiptId=localStorage.getItem(palletReceiptStorageKey())||'';palletReceiptItems=[];clearManualReceivingStorageContext({keepHierarchy:false});scheduleWorkstationProfileSync();renderPendingWbReceiving();await loadContextData();scheduleWorkstationProfileSync();if($('page-palletreceive')?.classList.contains('active'))await loadPalletReceipts();});
+$('clientSelect').addEventListener('change',async e=>{state.clientId=e.target.value||null;fc27ServerDraft=null;fc27ServerDraftContext='';state.bulkReceivingHistory=[];state.bulkReceivingHistoryLoaded=false;state.bulkReceivingHistoryLoading=false;state.bulkReceivingHistoryContextKey='';receivingHistoryOpenOperationId='';const __boxPanel=$('containerDetailPanel');if(__boxPanel){__boxPanel.classList.add('hidden');__boxPanel.innerHTML='';delete __boxPanel.dataset.containerId;}state.inventoryCatalogLoaded=false;state.inventoryCatalog=[];state.fbsStockStatus={};state.inventoryWbControl={};state.wbLiveStock={};state.wbLiveStockSummary=null;state.wbLiveStockCheckedAt=null;state.wbLiveStockError='';selectedLocationIds.clear();selectedContainerIds.clear();resetLocationBrowser(false);fcR20Remember('fc_client',state.clientId||'');currentPalletReceiptId=localStorage.getItem(palletReceiptStorageKey())||'';palletReceiptItems=[];clearManualReceivingStorageContext({keepHierarchy:false});scheduleWorkstationProfileSync();renderPendingWbReceiving();await loadContextData();scheduleWorkstationProfileSync();if($('page-palletreceive')?.classList.contains('active'))await loadPalletReceipts();
+  if(['receiving_terminal','warehouse_workflow'].includes(state.activePage))ensureZipEmbedFrame(state.activePage);
+});
 async function switchInternalWarehouse(nextWarehouseId){
   const select=$('warehouseSelect'),previous=state.warehouseId;
   if(!nextWarehouseId||nextWarehouseId===previous){if(select)select.value=previous||'';return;}
@@ -2376,6 +2408,7 @@ async function switchInternalWarehouse(nextWarehouseId){
     await Promise.allSettled([loadWbOrders(false),loadWbSupplies(false)]);
   }
   if($('page-palletreceive')?.classList.contains('active'))await loadPalletReceipts().catch(e=>toast(e.message,true));
+  if(['receiving_terminal','warehouse_workflow'].includes(state.activePage))ensureZipEmbedFrame(state.activePage);
   if(select){select.value=state.warehouseId||'';select.disabled=false;}
   scheduleWorkstationProfileSync();
 }
@@ -2873,8 +2906,8 @@ $('shipForm').addEventListener('submit',async e=>{e.preventDefault();try{
 
 async function createLocation(code,barcode){await ensureContext();const c=code.trim(),b=(barcode||'').trim()||c;if(!c)throw new Error('Введите код ячейки');return api('/masterdata/locations',{method:'POST',body:JSON.stringify({warehouse_id:state.warehouseId,parent_id:null,code:c,barcode:b,name:`Ячейка ${c}`,location_type:'CELL'})});}
 $('quickLocationForm').addEventListener('submit',async e=>{e.preventDefault();try{await createLocation($('quickLocationCode').value,$('quickLocationBarcode').value);e.target.reset();await loadContextData();toast('Ячейка создана');}catch(err){toast(err.message,true)}});
-$('clientForm').addEventListener('submit',async e=>{e.preventDefault();try{await api('/masterdata/clients',{method:'POST',body:JSON.stringify({name:$('clientName').value.trim()})});e.target.reset();await loadContexts();toast('Клиент добавлен');}catch(err){toast(err.message,true)}});
-$('warehouseForm').addEventListener('submit',async e=>{e.preventDefault();try{await api('/masterdata/warehouses',{method:'POST',body:JSON.stringify({code:$('warehouseCode').value.trim(),name:$('warehouseName').value.trim()})});e.target.reset();await loadContexts();toast('Склад добавлен');}catch(err){toast(err.message,true)}});
+$('clientForm').addEventListener('submit',async e=>{e.preventDefault();setMdColumnBusy('client',true,'Добавляем клиента…');try{await api('/masterdata/clients',{method:'POST',body:JSON.stringify({name:$('clientName').value.trim()})});e.target.reset();await loadContexts();renderMasterdataDirectories({animateEnter:true});toast('Клиент добавлен');}catch(err){toast(err.message,true)}finally{setMdColumnBusy('client',false);}});
+$('warehouseForm').addEventListener('submit',async e=>{e.preventDefault();setMdColumnBusy('warehouse',true,'Добавляем склад…');try{await api('/masterdata/warehouses',{method:'POST',body:JSON.stringify({name:$('warehouseName').value.trim()})});e.target.reset();await loadContexts();renderMasterdataDirectories({animateEnter:true});toast('Склад добавлен');}catch(err){toast(err.message,true)}finally{setMdColumnBusy('warehouse',false);}});
 function nextLocationNumber(value){const s=String(value||'').trim();const m=s.match(/^(.*?)(\d+)$/);if(!m)return s?`${s}-1`:'1';return m[1]+String(Number(m[2])+1).padStart(m[2].length,'0');}
 let lastCreatedLocationIds=[];
 function installLocationStructureBuilder(){
@@ -2951,21 +2984,237 @@ function installLocationStructureBuilder(){
 installLocationStructureBuilder();
 $('skuForm').addEventListener('submit',async e=>{e.preventDefault();try{await ensureContext();await api('/masterdata/skus',{method:'POST',body:JSON.stringify({client_id:state.clientId,sku_code:$('skuCode').value.trim(),article:$('skuArticle').value.trim()||null,name:$('skuName').value.trim(),size:$('skuSize').value.trim()||null,barcode:$('skuBarcode').value.trim()||null,unit:'PCS'})});e.target.reset();await loadContextData();toast('Товар добавлен');}catch(err){toast(err.message,true)}});
 
-// FC_R106_MASTERDATA_PICKING: one administrative place for external warehouse picking.
+// FC_R106_MASTERDATA_DIRECTORIES: clean two-column clients/warehouses workspace.
 function r106PickStorageKey(){return `fc:r106:pick-number:${state.clientId||'none'}:${state.warehouseId||'none'}`;}
-function installR106MasterdataWorkspace(){
-  const page=$('page-masterdata'),grid=page?.querySelector('.master-grid');if(!page||!grid)return;
-  const loc=$('locationForm'),sku=$('skuForm');if(loc)loc.hidden=true;if(sku)sku.hidden=true;
-  if(!document.getElementById('r106MasterdataStyle')){const st=document.createElement('style');st.id='r106MasterdataStyle';st.textContent='#locationForm,#skuForm,[data-external-pick-upload],[data-external-pick-template],[data-external-pick-cancel-last],[data-external-pick-file],[data-r65-go="fbspicks"]{display:none!important}.r106-pick-panel{grid-column:1/-1}.r106-pick-row{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(280px,1.3fr);gap:14px}.r106-pick-row .button-row{align-items:end}.r106-warehouse-danger{margin-top:10px}.r106-pick-status{margin-top:10px;color:#667085}@media(max-width:800px){.r106-pick-row{grid-template-columns:1fr}}';document.head.appendChild(st);}
-  if(!$('r106PickingPanel')){
-    const panel=document.createElement('section');panel.id='r106PickingPanel';panel.className='panel compact-form r106-pick-panel';panel.innerHTML=`<span class="kicker">СБОРКА / ПОСТАВКА</span><h3>Сборочные листы</h3><p>Введите номер поставки или внутреннего задания, затем загрузите Excel с колонками <b>ШК</b> и <b>Количество</b>. FulfillCore спишет только свободный товар, не затронет резерв заказов и скачает итоговый Excel: «Факт» с ячейками/коробами, «Не хватило» и «Не обработано WB».</p><div class="r106-pick-row"><label>Поставка / № сборочного задания<input id="r106PickNumber" placeholder="Например: 4534" autocomplete="off"></label><div class="button-row"><button type="button" class="primary" id="r106PickUpload">Загрузить Excel и сформировать</button><button type="button" class="secondary" id="r106PickTemplate">Скачать шаблон</button><button type="button" class="secondary" id="r106PickCancel">Отменить последнее</button><input type="file" id="r106PickFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></div></div><div id="r106PickStatus" class="r106-pick-status">После обработки готовый файл сам скачивается и показывает, из каких ячеек и коробов взять товар.</div>`;grid.appendChild(panel);
-    const number=$('r106PickNumber');number.value=localStorage.getItem(r106PickStorageKey())||'';number.addEventListener('input',()=>localStorage.setItem(r106PickStorageKey(),number.value.trim()));
-    $('r106PickTemplate').onclick=()=>downloadExternalFbsPickTemplate();
-    $('r106PickCancel').onclick=()=>cancelLastExternalFbsPick().catch(err=>toast(err.message,true));
-    $('r106PickUpload').onclick=()=>{const n=number.value.trim();if(!n){toast('Введите номер поставки / сборочного задания',true);number.focus();return;}$('r106PickFile').click();};
-    $('r106PickFile').addEventListener('change',async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;const n=number.value.trim();if(!n){toast('Введите номер поставки / сборочного задания',true);return;}const st=$('r106PickStatus');st.textContent=`Обрабатываем задание №${n}…`;try{const r=await uploadExternalFbsPickFile(file,n);if(r)st.textContent=`Готово: №${r.task_number||n} · списано ${fmtQty(r.allocated_units||0)} шт. · не хватило ${fmtQty(r.shortage_units||0)} шт. Итоговый Excel скачан.`;}catch(err){st.textContent='Ошибка: '+err.message;toast(err.message,true);}});
+const mdDirectoryUi={
+  clientQuery:'',warehouseQuery:'',editingClientId:null,firstPaint:true,
+  knownClientIds:new Set(),knownWarehouseIds:new Set(),
+  busyClient:false,busyWarehouse:false,
+};
+function blockersText(blockers){return (blockers||[]).map(x=>`${x.name}${x.count!=null?` (${x.count})`:''}`).join('; ');}
+function mdActiveClients(){return (state.clients||[]).filter(x=>x&&x.is_active!==false);}
+function mdActiveWarehouses(){return (state.warehouses||[]).filter(x=>x&&x.is_active!==false);}
+function mdFilterRows(rows,query){
+  const q=String(query||'').trim().toLocaleLowerCase('ru');
+  if(!q)return rows;
+  return rows.filter(x=>[x.name,x.code].some(v=>String(v||'').toLocaleLowerCase('ru').includes(q)));
+}
+function mdPrefersReducedMotion(){try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch{return false;}}
+function mdSleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function setMdColumnBusy(kind,busy,label){
+  const col=kind==='client'?'clients':'warehouses';
+  const card=document.querySelector(`#mdWorkspace [data-md-col="${col}"]`);
+  if(!card)return;
+  if(kind==='client')mdDirectoryUi.busyClient=!!busy;else mdDirectoryUi.busyWarehouse=!!busy;
+  card.classList.toggle('is-busy',!!busy);
+  card.setAttribute('aria-busy',busy?'true':'false');
+  const busyEl=card.querySelector('.md-busy');
+  const textEl=busyEl?.querySelector('[data-md-busy-text]');
+  if(textEl&&label)textEl.textContent=label;
+  if(busyEl)busyEl.hidden=!busy;
+}
+async function mdAnimateRemoveRow(kind,id){
+  const host=$(kind==='client'?'mdClientsList':'mdWarehousesList');
+  const row=host?.querySelector(`.md-row[data-id="${String(id).replace(/"/g,'')}"]`);
+  if(!row||mdPrefersReducedMotion())return;
+  row.classList.add('md-row-leave');
+  await mdSleep(240);
+}
+function mdPulseCount(el){
+  if(!el||mdPrefersReducedMotion())return;
+  el.classList.remove('md-count-pulse');
+  void el.offsetWidth;
+  el.classList.add('md-count-pulse');
+}
+async function archiveMasterdataClient(client){
+  setMdColumnBusy('client',true,'Проверяем…');
+  try{
+    const preview=await api(`/r145f25/clients/${encodeURIComponent(client.id)}/archive-preview`);
+    if(preview.blockers?.length){toast(`Нельзя удалить «${client.name}»: ${blockersText(preview.blockers)}`,true);return;}
+    if(!confirm(`Удалить клиента «${client.name}» из активных?\n\nИстория и связи сохраняются. Клиент уйдёт в архив.`))return;
+    setMdColumnBusy('client',true,'Удаляем…');
+    await mdAnimateRemoveRow('client',client.id);
+    await api(`/r145f25/clients/${encodeURIComponent(client.id)}/archive`,{method:'POST',body:JSON.stringify({confirmed:true,fingerprint:preview.fingerprint})});
+    if(String(state.clientId)===String(client.id)){localStorage.removeItem('fc_client');state.clientId=null;}
+    if(String(mdDirectoryUi.editingClientId)===String(client.id))mdDirectoryUi.editingClientId=null;
+    mdDirectoryUi.knownClientIds.delete(String(client.id));
+    await loadContexts();renderMasterdataDirectories({animateEnter:false});toast(`Клиент «${client.name}» удалён из активных. История сохранена.`);
+  }finally{setMdColumnBusy('client',false);}
+}
+async function saveMasterdataClientName(client,name){
+  const next=String(name||'').trim();
+  if(!next){toast('Укажите имя клиента',true);return;}
+  if(next===String(client.name||'').trim()){mdDirectoryUi.editingClientId=null;renderMasterdataDirectories({animateEnter:false});return;}
+  setMdColumnBusy('client',true,'Сохраняем имя…');
+  try{
+    await api(`/r145f25/clients/${encodeURIComponent(client.id)}`,{method:'PATCH',body:JSON.stringify({name:next})});
+    mdDirectoryUi.editingClientId=null;
+    await loadContexts();renderMasterdataDirectories({animateEnter:false});toast('Имя клиента обновлено');
+  }finally{setMdColumnBusy('client',false);}
+}
+async function archiveMasterdataWarehouse(warehouse){
+  setMdColumnBusy('warehouse',true,'Проверяем…');
+  try{
+    const preview=await api(`/r145f25/warehouses/${encodeURIComponent(warehouse.id)}/archive-preview`);
+    if(preview.blockers?.length){toast(`Нельзя удалить «${warehouse.name}»: ${blockersText(preview.blockers)}`,true);return;}
+    if(!confirm(`Удалить склад «${warehouse.name}» из активных?\n\nИстория, приёмки и складские операции НЕ удаляются. Склад будет архивирован.`))return;
+    setMdColumnBusy('warehouse',true,'Удаляем…');
+    await mdAnimateRemoveRow('warehouse',warehouse.id);
+    await api(`/r145f25/warehouses/${encodeURIComponent(warehouse.id)}/archive`,{method:'POST',body:JSON.stringify({confirmed:true,fingerprint:preview.fingerprint})});
+    if(String(state.warehouseId)===String(warehouse.id)){localStorage.removeItem('fc_warehouse');state.warehouseId=null;}
+    mdDirectoryUi.knownWarehouseIds.delete(String(warehouse.id));
+    await loadContexts();renderMasterdataDirectories({animateEnter:false});toast(`Склад «${warehouse.name}» удалён из активных. История сохранена.`);
+  }finally{setMdColumnBusy('warehouse',false);}
+}
+function mdClientRowHtml(c){
+  if(String(mdDirectoryUi.editingClientId)===String(c.id)){
+    return `<article class="md-row is-editing" data-md-row="client" data-id="${esc(c.id)}">
+      <form class="md-edit" data-md-client-save="${esc(c.id)}">
+        <input name="name" maxlength="255" required value="${esc(c.name||'')}" aria-label="Новое имя клиента" />
+        <div class="md-row-actions">
+          <button type="submit" class="primary mini">Сохранить</button>
+          <button type="button" class="secondary mini" data-md-client-cancel="${esc(c.id)}">Отмена</button>
+        </div>
+      </form>
+    </article>`;
   }
-  const whForm=$('warehouseForm');if(whForm&&!$('r106DeleteWarehouse')){const btn=document.createElement('button');btn.id='r106DeleteWarehouse';btn.type='button';btn.className='danger r106-warehouse-danger';btn.textContent='Удалить выбранный склад';btn.onclick=async()=>{const current=state.warehouses.find(x=>String(x.id)===String(state.warehouseId));if(!current){toast('Сначала выберите склад',true);return;}if(!confirm(`Удалить склад «${current.name}» из активного списка?\n\nИстория, приёмки и складские операции НЕ удаляются. Склад будет архивирован, чтобы старые документы не потеряли связь.`))return;try{await api(`/r106/warehouses/${encodeURIComponent(current.id)}`,{method:'DELETE'});localStorage.removeItem('fc_warehouse');state.warehouses=state.warehouses.filter(x=>String(x.id)!==String(current.id));await loadContexts();toast(`Склад «${current.name}» удалён из активного списка. История сохранена.`);}catch(err){toast(err.message,true);}};whForm.appendChild(btn);}
+  return `<article class="md-row" data-md-row="client" data-id="${esc(c.id)}">
+    <div class="md-row-main"><span class="md-row-name">${esc(c.name||'—')}</span><span class="md-row-code" title="${esc(c.code||'')}">${esc(c.code||'без кода')}</span></div>
+    <div class="md-row-actions">
+      <button type="button" class="secondary mini" data-md-client-rename="${esc(c.id)}">Переименовать</button>
+      <button type="button" class="danger mini" data-md-client-delete="${esc(c.id)}">Удалить</button>
+    </div>
+  </article>`;
+}
+function mdWarehouseRowHtml(w){
+  return `<article class="md-row" data-md-row="warehouse" data-id="${esc(w.id)}">
+    <div class="md-row-main"><span class="md-row-name">${esc(w.name||'—')}</span><span class="md-row-code" title="${esc(w.code||'')}">${esc(w.code||'без кода')}</span></div>
+    <div class="md-row-actions">
+      <button type="button" class="danger mini" data-md-warehouse-delete="${esc(w.id)}">Удалить</button>
+    </div>
+  </article>`;
+}
+function renderMasterdataDirectories({animateEnter=false}={}){
+  const clientsHost=$('mdClientsList'),warehousesHost=$('mdWarehousesList');
+  if(!clientsHost||!warehousesHost)return;
+  const prevClientIds=mdDirectoryUi.knownClientIds;
+  const prevWarehouseIds=mdDirectoryUi.knownWarehouseIds;
+  const clients=mdFilterRows(mdActiveClients(),mdDirectoryUi.clientQuery);
+  const warehouses=mdFilterRows(mdActiveWarehouses(),mdDirectoryUi.warehouseQuery);
+  const allClients=mdActiveClients(),allWarehouses=mdActiveWarehouses();
+  const prevClientCount=Number($('mdClientsCount')?.textContent||0);
+  const prevWarehouseCount=Number($('mdWarehousesCount')?.textContent||0);
+  clientsHost.innerHTML=clients.length?clients.map(mdClientRowHtml).join(''):`<div class="md-empty"><b>${allClients.length?'Ничего не найдено':'Клиентов пока нет'}</b>${allClients.length?'Измените поисковый запрос':'Добавьте первого клиента в форме выше'}</div>`;
+  warehousesHost.innerHTML=warehouses.length?warehouses.map(mdWarehouseRowHtml).join(''):`<div class="md-empty"><b>${allWarehouses.length?'Ничего не найдено':'Складов пока нет'}</b>${allWarehouses.length?'Измените поисковый запрос':'Добавьте первый склад в форме выше'}</div>`;
+  const allowEnter=animateEnter&&!mdDirectoryUi.firstPaint&&!mdPrefersReducedMotion();
+  if(allowEnter){
+    clientsHost.querySelectorAll('.md-row[data-id]').forEach(row=>{if(!prevClientIds.has(String(row.dataset.id)))row.classList.add('md-row-enter');});
+    warehousesHost.querySelectorAll('.md-row[data-id]').forEach(row=>{if(!prevWarehouseIds.has(String(row.dataset.id)))row.classList.add('md-row-enter');});
+  }
+  mdDirectoryUi.knownClientIds=new Set(allClients.map(x=>String(x.id)));
+  mdDirectoryUi.knownWarehouseIds=new Set(allWarehouses.map(x=>String(x.id)));
+  mdDirectoryUi.firstPaint=false;
+  const cCount=$('mdClientsCount'),wCount=$('mdWarehousesCount');
+  if(cCount){cCount.textContent=String(allClients.length);if(allClients.length!==prevClientCount)mdPulseCount(cCount);}
+  if(wCount){wCount.textContent=String(allWarehouses.length);if(allWarehouses.length!==prevWarehouseCount)mdPulseCount(wCount);}
+  const cSearch=$('mdClientSearch'),wSearch=$('mdWarehouseSearch');
+  if(cSearch&&cSearch.value!==mdDirectoryUi.clientQuery)cSearch.value=mdDirectoryUi.clientQuery;
+  if(wSearch&&wSearch.value!==mdDirectoryUi.warehouseQuery)wSearch.value=mdDirectoryUi.warehouseQuery;
+  if(mdDirectoryUi.editingClientId){
+    const input=clientsHost.querySelector('form.md-edit input[name="name"]');
+    input?.focus();input?.select();
+  }
+}
+function installR106MasterdataWorkspace(){
+  const page=$('page-masterdata');if(!page)return;
+  let workspace=$('mdWorkspace');
+  if(!workspace){workspace=document.createElement('div');workspace.id='mdWorkspace';page.prepend(workspace);}
+  if(workspace.dataset.mdReady&&!workspace.querySelector('.md-busy')){delete workspace.dataset.mdReady;workspace.innerHTML='';}
+  if(!workspace.dataset.mdReady){
+    workspace.dataset.mdReady='1';
+    mdDirectoryUi.firstPaint=true;
+    workspace.innerHTML=`
+      <section class="panel md-hero">
+        <div class="panel-head">
+          <div>
+            <span class="kicker">СЕТЬ СКЛАДОВ · СПРАВОЧНИКИ</span>
+            <h2>Клиенты и склады</h2>
+            <p>Здесь создаются и ведутся клиенты и физические склады. Удаление уводит запись в архив: история и документы сохраняются, а при блокировках операция не выполняется.</p>
+          </div>
+          <div class="md-hero-note"><b>Безопасное удаление</b><span>Система сначала проверяет остатки, короба и незакрытые операции.</span></div>
+        </div>
+      </section>
+      <div class="md-columns">
+        <section class="panel md-card" data-md-col="clients">
+          <div class="md-busy" hidden aria-live="polite"><span class="md-spinner" aria-hidden="true"></span><span data-md-busy-text>Сохраняем…</span></div>
+          <div class="md-card-head">
+            <div><span class="kicker">КЛИЕНТЫ</span><h3>Список клиентов</h3></div>
+            <span class="badge md-count" id="mdClientsCount">0</span>
+          </div>
+          <div id="mdClientCreateHost"></div>
+          <p class="md-hint">Код клиента создаётся автоматически. Удаление убирает клиента из активных переключателей.</p>
+          <div class="md-toolbar"><input id="mdClientSearch" type="search" placeholder="Найти клиента по имени или коду" autocomplete="off" /></div>
+          <div class="md-list" id="mdClientsList"></div>
+        </section>
+        <section class="panel md-card" data-md-col="warehouses">
+          <div class="md-busy" hidden aria-live="polite"><span class="md-spinner" aria-hidden="true"></span><span data-md-busy-text>Сохраняем…</span></div>
+          <div class="md-card-head">
+            <div><span class="kicker">СКЛАДЫ</span><h3>Список складов</h3></div>
+            <span class="badge md-count" id="mdWarehousesCount">0</span>
+          </div>
+          <div id="mdWarehouseCreateHost"></div>
+          <p class="md-hint">Код склада создаётся автоматически. Удалить можно только пустой склад без активных остатков и незакрытых операций.</p>
+          <div class="md-toolbar"><input id="mdWarehouseSearch" type="search" placeholder="Найти склад по имени или коду" autocomplete="off" /></div>
+          <div class="md-list" id="mdWarehousesList"></div>
+        </section>
+      </div>`;
+
+    const clientForm=$('clientForm'),warehouseForm=$('warehouseForm');
+    if(clientForm){
+      clientForm.className='md-create';
+      clientForm.innerHTML=`<div class="md-create-fields"><label>Название клиента<input id="clientName" name="name" required maxlength="255" placeholder="Например: ООО Ромашка" autocomplete="off" /></label></div><div class="button-row"><button class="primary" type="submit">Добавить клиента</button></div>`;
+      $('mdClientCreateHost')?.appendChild(clientForm);
+    }
+    if(warehouseForm){
+      warehouseForm.className='md-create';
+      warehouseForm.innerHTML=`<div class="md-create-fields"><label>Название склада<input id="warehouseName" name="name" required maxlength="255" placeholder="Например: Основной склад" autocomplete="off" /></label></div><div class="button-row"><button class="primary" type="submit">Добавить склад</button></div>`;
+      $('mdWarehouseCreateHost')?.appendChild(warehouseForm);
+    }
+
+    workspace.addEventListener('input',e=>{
+      if(e.target?.id==='mdClientSearch'){mdDirectoryUi.clientQuery=e.target.value;renderMasterdataDirectories({animateEnter:false});return;}
+      if(e.target?.id==='mdWarehouseSearch'){mdDirectoryUi.warehouseQuery=e.target.value;renderMasterdataDirectories({animateEnter:false});}
+    });
+    workspace.addEventListener('click',async e=>{
+      const rename=e.target.closest('[data-md-client-rename]');
+      const cancel=e.target.closest('[data-md-client-cancel]');
+      const delClient=e.target.closest('[data-md-client-delete]');
+      const delWh=e.target.closest('[data-md-warehouse-delete]');
+      if(cancel){mdDirectoryUi.editingClientId=null;renderMasterdataDirectories({animateEnter:false});return;}
+      if(rename){mdDirectoryUi.editingClientId=rename.dataset.mdClientRename;renderMasterdataDirectories({animateEnter:false});return;}
+      const btn=delClient||delWh;if(!btn)return;
+      if(mdDirectoryUi.busyClient||mdDirectoryUi.busyWarehouse)return;
+      btn.disabled=true;
+      try{
+        if(delClient){const c=mdActiveClients().find(x=>String(x.id)===String(delClient.dataset.mdClientDelete));if(!c)throw new Error('Клиент не найден');await archiveMasterdataClient(c);return;}
+        if(delWh){const w=mdActiveWarehouses().find(x=>String(x.id)===String(delWh.dataset.mdWarehouseDelete));if(!w)throw new Error('Склад не найден');await archiveMasterdataWarehouse(w);return;}
+      }catch(err){toast(err.message,true);}
+      finally{btn.disabled=false;}
+    });
+    workspace.addEventListener('submit',async e=>{
+      const form=e.target.closest('[data-md-client-save]');if(!form)return;
+      e.preventDefault();e.stopPropagation();
+      const id=form.dataset.mdClientSave;
+      const client=mdActiveClients().find(x=>String(x.id)===String(id));
+      if(!client){toast('Клиент не найден',true);return;}
+      const btn=form.querySelector('button[type="submit"]');if(btn)btn.disabled=true;
+      try{await saveMasterdataClientName(client,form.elements.name?.value);}
+      catch(err){toast(err.message,true);}
+      finally{if(btn)btn.disabled=false;}
+    });
+  }
+  $('r106PickingPanel')?.remove();
+  renderMasterdataDirectories({animateEnter:false});
 }
 installR106MasterdataWorkspace();
 
@@ -3148,9 +3397,15 @@ function refreshWbWarehouseSelector(){
 function renderWbWarehouses(){
   const el=$('wbWarehouseSettings');if(!el)return;
   const physical=state.warehouses.find(x=>x.id===state.warehouseId)?.name||'не выбран';
-  const context=`<div class="result-box"><b>Физический склад: ${esc(physical)}</b><span>Выбор ниже действует только для этого склада. Настройки другого физического склада не изменятся.</span></div>`;
-  if(!state.wbWarehouses.length){el.innerHTML=context+'<div class="empty-state">Склады WB не загружены.</div>';refreshWbWarehouseSelector();return;}
-  el.innerHTML=context+state.wbWarehouses.map(w=>`<div class="credential-row wb-wh-row"><div><b>${esc(w.name)}</b><small>ID склада продавца: ${esc(w.id)}${w.office_id?` · склад WB: ${esc(w.office_id)}`:''}</small></div><select class="wb-wh-mode" data-wb-wh="${esc(w.id)}"><option value="WORK" ${w.mode==='WORK'?'selected':''}>Работа</option><option value="WATCH" ${w.mode==='WATCH'?'selected':''}>Наблюдение</option><option value="HIDDEN" ${w.mode==='HIDDEN'?'selected':''}>Не показывать</option></select></div>`).join('');
+  const context=`<div class="wb-wh-context"><b>Физический склад: ${esc(physical)}</b><span>Выбор ниже действует только для этого склада. Настройки другого физического склада не изменятся.</span></div>`;
+  if(!state.wbWarehouses.length){
+    el.classList.add('empty-state');
+    el.innerHTML=context+'<div class="wb-wh-empty">Склады WB не загружены.</div>';
+    refreshWbWarehouseSelector();
+    return;
+  }
+  el.classList.remove('empty-state');
+  el.innerHTML=context+`<div class="wb-wh-list">${state.wbWarehouses.map(w=>`<div class="wb-wh-row"><div class="wb-wh-meta"><b class="wb-wh-name">${esc(w.name)}</b><small class="wb-wh-ids">ID склада продавца: ${esc(w.id)}${w.office_id?` · склад WB: ${esc(w.office_id)}`:''}</small></div><select class="wb-wh-mode" data-wb-wh="${esc(w.id)}" aria-label="Режим склада ${esc(w.name)}"><option value="WORK" ${w.mode==='WORK'?'selected':''}>Работа</option><option value="WATCH" ${w.mode==='WATCH'?'selected':''}>Наблюдение</option><option value="HIDDEN" ${w.mode==='HIDDEN'?'selected':''}>Не показывать</option></select></div>`).join('')}</div>`;
   refreshWbWarehouseSelector();
 }
 function applyWbWarehouseCollapse(){
@@ -3698,14 +3953,10 @@ function applyWbColumnWidth(key,width){
 }
 
 function syncWbHorizontalScroll(){
-  const top=$('wbOrdersTopScroll'),bottom=$('wbOrdersScroll');if(!top||!bottom)return;
-  const table=bottom.querySelector('table'),inner=top.firstElementChild;if(!table||!inner)return;
-  requestAnimationFrame(()=>{
-    inner.style.width=`${Math.max(table.scrollWidth,bottom.clientWidth)}px`;
-    top.style.display='block';
-    top.classList.toggle('no-overflow',table.scrollWidth<=bottom.clientWidth+2);
-    top.scrollLeft=bottom.scrollLeft;
-  });
+  // Keep a single horizontal scrollbar on #wbOrdersScroll.
+  // The legacy top scroller is intentionally hidden (see #page-marketplaces CSS).
+  const top=$('wbOrdersTopScroll');
+  if(top){top.style.display='none';top.setAttribute('aria-hidden','true');}
 }
 
 function renderWbOrderRows(){
@@ -4674,12 +4925,18 @@ function ozonStatusName(value){const status=String(value||'').toLowerCase();retu
 function installOzonWorkspace(){
   const page=$('page-ozon');if(!page||$('ozonFbsControls'))return;
   const panel=document.createElement('section');panel.id='ozonFbsControls';panel.className='ozon-fbs-controls';panel.innerHTML=`<div class="ozon-control-head"><div><span class="kicker">OZON FBS</span><h3>Склад и отгрузка</h3><p>Отгрузка создаётся только из отправлений, которые Ozon уже показывает упакованными.</p></div><span id="ozonConnectionState" class="tag">Подключение не проверено</span></div><div class="ozon-control-grid"><label>Склад Ozon<select id="ozonWarehouseSelect"><option value="">Все склады</option></select></label><label>Дата отгрузки<input id="ozonDepartureDate" type="date"/></label><div class="button-row"><button id="refreshOzonWarehousesBtn" type="button" class="secondary">Обновить склады</button><button id="ozonShipPackedBtn" type="button" class="primary" disabled>Создать отгрузку из упакованных</button></div></div><small id="ozonShipmentHint">Можно выбрать отправления галочками. Если ничего не выбрано, в отгрузку попадут все видимые упакованные отправления выбранного склада.</small>`;
-  const table=$('ozonPostingsBody')?.closest('.table-wrap')||$('ozonPostingsBody')?.closest('table');if(table)table.insertAdjacentElement('beforebegin',panel);else page.appendChild(panel);
+  const mount=$('ozonControlsMount');
+  if(mount) mount.replaceWith(panel);
+  else{
+    const table=$('ozonPostingsBody')?.closest('.table-wrap')||$('ozonPostingsBody')?.closest('table');
+    if(table) table.insertAdjacentElement('beforebegin',panel); else page.appendChild(panel);
+  }
   const today=new Date();$('ozonDepartureDate').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
   $('refreshOzonWarehousesBtn').addEventListener('click',()=>loadOzonWarehouses(true).catch(e=>toast(e.message,true)));
   $('ozonWarehouseSelect').addEventListener('change',async e=>{state.ozonWarehouseId=e.target.value||'';localStorage.setItem(scopedStorageKey('fc_ozon_warehouse',state.warehouseId),state.ozonWarehouseId);await loadOzonPostings();});
   $('ozonShipPackedBtn').addEventListener('click',createOzonShipmentFromPacked);
-  if(!document.getElementById('ozonWorkspaceStyles')){const style=document.createElement('style');style.id='ozonWorkspaceStyles';style.textContent='.ozon-fbs-controls{display:grid;gap:14px;margin:14px 0;padding:16px;border:1px solid #c7d7fe;border-radius:15px;background:#f5f8ff}.ozon-control-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.ozon-control-head h3,.ozon-control-head p{margin:0}.ozon-control-head p{color:#667085}.ozon-control-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(170px,.45fr) auto;align-items:end;gap:12px}.ozon-control-grid label{display:grid;gap:6px}.ozon-fbs-controls>small{color:#667085}.ozon-ready{color:#067647;font-weight:750}.ozon-not-ready{color:#b54708}@media(max-width:850px){.ozon-control-grid{grid-template-columns:1fr}.ozon-control-head{display:grid}}';document.head.appendChild(style);}
+  // Remove legacy hardcoded light styles; theme-aware rules live in index.html under #page-ozon.
+  document.getElementById('ozonWorkspaceStyles')?.remove();
 }
 installOzonWorkspace();
 async function loadOzonWarehouses(showToast=false){
@@ -5750,7 +6007,7 @@ document.addEventListener('click',async e=>{
   }catch(err){toast(err.message,true);}finally{b.disabled=false;}
 });
 /* The new receiving module uses the existing authenticated API and context. */
-(()=>{const native=()=>{if(document.getElementById('fcReceivingNativeScript'))return;const n=document.createElement('script');n.id='fcReceivingNativeScript';n.src='/static/receiving-native.js?v=r76';n.onload=()=>{window.FCTsdReceivingReady=true;window.dispatchEvent(new Event('fc:receiving-ready'));};n.onerror=()=>toast('Не удалось загрузить приёмку. Обновите страницу Ctrl+F5',true);document.head.appendChild(n);};if(window.FCBoxIntake){native();return;}const s=document.createElement('script');s.id='fcBoxIntakeScript';s.src='/static/box_intake.js?v=r145f27';s.onload=native;s.onerror=()=>toast('Не удалось загрузить приёмку коробов. Обновите страницу Ctrl+F5',true);document.head.appendChild(s);})();
+(()=>{const native=()=>{if(document.getElementById('fcReceivingNativeScript'))return;const n=document.createElement('script');n.id='fcReceivingNativeScript';n.src='/static/receiving-native.js?v=r77';n.onload=()=>{window.FCTsdReceivingReady=true;window.dispatchEvent(new Event('fc:receiving-ready'));};n.onerror=()=>toast('Не удалось загрузить приёмку. Обновите страницу Ctrl+F5',true);document.head.appendChild(n);};if(window.FCBoxIntake){native();return;}const s=document.createElement('script');s.id='fcBoxIntakeScript';s.src='/static/box_intake.js?v=r145f27';s.onload=native;s.onerror=()=>toast('Не удалось загрузить приёмку коробов. Обновите страницу Ctrl+F5',true);document.head.appendChild(s);})();
 
 /* r74: downloadable Android application and the shared receiving workplace. */
 (()=>{const s=document.createElement('script');s.src='/static/tsd-workplace.js?v=r74';s.onerror=()=>toast('Не удалось открыть рабочее место ТСД. Повторите загрузку.',true);document.head.appendChild(s);})();
@@ -5973,20 +6230,34 @@ go=function(page){
 
 /* FC_R145F9_NAV_RECOVERY_AND_PRINT_SETTINGS */
 (()=>{
-  const affected=new Set(['palletreceive','warehousework','defectstorage','printsettings']);
+  const affected=new Set(['palletreceive','receivinghome','receiving_terminal','warehouse_workflow','warehousework','defectstorage','printsettings']);
+  function resolvePage(page){return page==='palletreceive'?'receivinghome':page;}
+  function waitReceivingReady(ms=12000){
+    if(window.FCTsdReceivingReady&&document.getElementById('page-receivinghome')?.dataset.r69Ready==='1')return Promise.resolve();
+    return new Promise(resolve=>{
+      let done=false;
+      const finish=()=>{if(done)return;done=true;clearTimeout(timer);clearInterval(poll);window.removeEventListener('fc:receiving-ready',finish);resolve();};
+      const timer=setTimeout(finish,ms);
+      const poll=setInterval(()=>{if(window.FCTsdReceivingReady&&document.getElementById('page-receivinghome')?.dataset.r69Ready==='1')finish();},40);
+      window.addEventListener('fc:receiving-ready',finish);
+    });
+  }
   function directActivate(page){
     const target=document.getElementById('page-'+page);if(!target)return false;
     try{state.activePage=page;fcR20Remember('fc_active_page',page);}catch(_){ }
     document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x===target));
-    document.querySelectorAll('#mainNav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
+    document.querySelectorAll('#mainNav [data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page||(page==='receivinghome'&&x.dataset.page==='receivinghome')));
     const title=document.getElementById('pageTitle');if(title)title.textContent=(typeof titles!=='undefined'&&titles[page])||page;
-    if(['palletreceive','warehousework','defectstorage'].includes(page)){
+    if(['palletreceive','receivinghome','warehousework','defectstorage'].includes(page)){
       try{state.warehouseMenuOpen=true;fcR20Remember('fc_warehouse_menu_open','1');if(typeof applyWarehouseMenu==='function')applyWarehouseMenu();}catch(_){ }
     }
     return true;
   }
   function loadScriptOnce(id,src){return new Promise((resolve,reject)=>{const existing=document.getElementById(id);if(existing){if(existing.dataset.loaded==='1'||document.getElementById('page-defectstorage'))return resolve(existing);existing.addEventListener('load',()=>resolve(existing),{once:true});existing.addEventListener('error',()=>reject(new Error('Не удалось загрузить модуль')),{once:true});return;}const s=document.createElement('script');s.id=id;s.src=src;s.onload=()=>{s.dataset.loaded='1';resolve(s)};s.onerror=()=>reject(new Error('Не удалось загрузить '+src));document.head.appendChild(s);});}
   async function ensureSpecialPage(page){
+    if(page==='receivinghome'){
+      try{await waitReceivingReady(12000);window.FCReceiving?.setup?.();}catch(e){console.warn('r145f9 receiving bootstrap',e);}
+    }
     if(page==='warehousework'&&!document.getElementById('page-warehousework')&&typeof window.loadWarehouseWorkR62==='function'){
       try{await window.loadWarehouseWorkR62();}catch(e){console.warn('r145f9 assembly bootstrap',e);}
     }
@@ -5995,8 +6266,15 @@ go=function(page){
     }
     return document.getElementById('page-'+page);
   }
+  function ensureZipEmbed(page){
+    if(typeof ensureZipEmbedFrame==='function')ensureZipEmbedFrame(page);
+  }
   async function postOpen(page){
     try{
+      ensureZipEmbed(page);
+      if(page==='receivinghome'){
+        try{await window.FCReceiptHistory?.load?.();}catch(_){ }
+      }
       if(page==='palletreceive'){
         if(typeof palletReceiptShowHome==='function'&&typeof currentPalletReceiptId!=='undefined'){
           const view=localStorage.getItem('fc_pallet_receipt_view');
@@ -6016,20 +6294,36 @@ go=function(page){
     }catch(e){console.warn('r145f9 page post-open',page,e);if(typeof toast==='function')toast(e.message||String(e),true);}
   }
   async function safeOpen(page){
-    try{if(typeof go==='function')go(page);}catch(e){console.error('r145f9 wrapped go failed',page,e);}
-    let target=await ensureSpecialPage(page);
-    if(!target){if(typeof toast==='function')toast('Не удалось открыть раздел «'+((typeof titles!=='undefined'&&titles[page])||page)+'». Обновите страницу Ctrl+F5.',true);return;}
-    if(!target.classList.contains('active'))directActivate(page);
-    await postOpen(page);
+    page=resolvePage(page);
+    const useSpinner=page==='receivinghome'&&!(document.getElementById('zip-main-loading')?.classList.contains('show'));
+    if(useSpinner)try{window.ZipMainLoading?.show?.();}catch(_){ }
+    try{
+      if(page==='receivinghome'){
+        try{await waitReceivingReady(12000);window.FCReceiving?.setup?.();}catch(_){ }
+      }
+      try{
+        const r=typeof go==='function'?go(page):null;
+        if(r&&typeof r.then==='function')await r;
+        else if(window.__fcPageReady&&typeof window.__fcPageReady.then==='function')await window.__fcPageReady;
+      }catch(e){console.error('r145f9 wrapped go failed',page,e);}
+      // Активируем фактическую страницу после go (не исходный palletreceive).
+      const active=(typeof state!=='undefined'&&state.activePage)||page;
+      let target=await ensureSpecialPage(active);
+      if(!target){if(typeof toast==='function')toast('Не удалось открыть раздел «'+((typeof titles!=='undefined'&&titles[active])||active)+'». Обновите страницу Ctrl+F5.',true);return;}
+      if(!target.classList.contains('active'))directActivate(active);
+      await postOpen(active);
+    }finally{
+      if(useSpinner)try{window.ZipMainLoading?.hide?.();}catch(_){ }
+    }
   }
   function bind(){
     const nav=document.getElementById('mainNav');if(!nav||nav.dataset.r145f9NavRecovery==='1')return;nav.dataset.r145f9NavRecovery='1';
     nav.addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(!b||!affected.has(b.dataset.page))return;e.preventDefault();e.stopImmediatePropagation();safeOpen(b.dataset.page);},true);
     // A static assembly nav is intentionally present in index.html. If older cached markup is still shown, add it here too.
-    if(!nav.querySelector('[data-page="warehousework"]')){const receive=nav.querySelector('[data-page="palletreceive"]'),b=document.createElement('button');b.type='button';b.dataset.page='warehousework';b.innerHTML='<span>СБ</span>Сборка';receive?.after(b);}
+    if(!nav.querySelector('[data-page="warehousework"]')){const receive=nav.querySelector('[data-page="receivinghome"],[data-page="palletreceive"]'),b=document.createElement('button');b.type='button';b.dataset.page='warehousework';b.innerHTML='<span>СБ</span>Сборка';receive?.after(b);}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  window.FCR145F9Navigation={open:safeOpen,directActivate};
+  window.FCR145F9Navigation={open:safeOpen,directActivate,resolvePage,waitReceivingReady};
 })();
 
 

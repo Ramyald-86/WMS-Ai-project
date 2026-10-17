@@ -14,7 +14,18 @@ class ORMModel(BaseModel):
 
 
 WarehouseKind = Literal["MAIN", "FBS", "PVZ", "TRANSIT", "DEFECT", "OTHER"]
-UserRole = Literal["FC_ADMIN", "WAREHOUSE", "PICKER", "PACKER", "WB_OPERATOR", "VIEWER"]
+UserRole = Literal[
+    "FC_ADMIN",
+    "WAREHOUSE",
+    "PICKER",
+    "PACKER",
+    "WB_OPERATOR",
+    "VIEWER",
+    "OPERATOR",
+    "SUPERVISOR",
+    "WAREHOUSE_MANAGER",
+    "ACCOUNTANT",
+]
 FulfillmentStatus = Literal["DRAFT", "ONBOARDING", "ACTIVE", "SUSPENDED", "ARCHIVED"]
 MarketplaceProvider = Literal["WB", "OZON"]
 

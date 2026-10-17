@@ -161,10 +161,15 @@ def start_worker():
             return False
         def run():
             pause = threading.Event()
+            schema_ready = False
             while True:
                 worked = False
                 try:
-                    # Schema is installed after backup by install_update.sh.
+                    if not schema_ready:
+                        with SessionLocal() as db:
+                            install_schema(db)
+                            db.commit()
+                        schema_ready = True
                     result = run_batch(SessionLocal)
                     worked = bool(result['processed'])
                     _health.update(last_pass=datetime.now(timezone.utc).isoformat(), last_error=None)

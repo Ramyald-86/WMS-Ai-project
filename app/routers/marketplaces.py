@@ -3156,6 +3156,17 @@ def _readonly_picking_rows(
             'age_hours':round(marketplace_order_age_hours(order,now),2),'sla_critical':bool(marketplace_order_age_hours(order,now)>=300),
             'stock':free_stock,
         }
+        try:
+            from app.services.zipline_tz_core import sla_risk_band
+            risk = sla_risk_band(prepared['age_hours'], sla_hours=24.0)
+            # Keep legacy 300h critical as RED override for long-lived WB queues.
+            if prepared['sla_critical']:
+                risk = {**risk, 'risk': 'RED', 'sla_critical': True}
+            prepared['sla_risk'] = risk['risk']
+            prepared['sla_remaining_hours'] = risk['remaining_hours']
+            prepared['sla_hours'] = risk['sla_hours']
+        except Exception:
+            prepared['sla_risk'] = 'RED' if prepared['sla_critical'] else 'GREEN'
         if free_stock:
             source_orders.append(prepared)
         else:

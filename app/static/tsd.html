@@ -29,7 +29,7 @@
       <div id="pickingAvailable" class="availability-card">Проверяем назначенную сборку…</div>
       <button id="startPick" class="primary big">Получить актуальную сборку</button>
       <button id="openMove" class="secondary big">Перемещение короб → короб</button>
-      <div class="workplace-actions"><button class="secondary big" id="openBoxes">Приёмка коробов</button><button class="secondary big" id="openGoods">Приёмка товара</button><button class="secondary big" id="openCount">Инвентаризация</button><button class="secondary big transit-home-btn" id="openTransit">Транзитный склад</button><button class="secondary big" id="openBoxPicks">Сборка коробов</button><button class="secondary big" id="openStocks">Остатки и короба</button><button class="secondary big" id="openWorkHistory">История ТСД / Excel</button></div>
+      <div class="workplace-actions"><button class="secondary big" id="openBoxes">Приёмка коробов</button><button class="secondary big" id="openGoods">Приёмка товара</button><button class="secondary big" id="openCount">Инвентаризация</button><button class="secondary big transit-home-btn" id="openTransit">Транзитный склад</button><button class="secondary big" id="openBoxPicks">Сборка коробов</button><button class="secondary big" id="openStocks">Остатки и короба</button><button class="secondary big" id="openWorkHistory">История ТСД / Excel</button><button class="secondary big" id="openPrintBind">Привязка принтера</button></div>
       <a class="report-link hidden" id="lastReport">Скачать последний отчёт Excel</a>
       <p><a href="/tsd/install">Установить / обновить приложение</a> · <span id="mobileVersion">WMS r145f25</span></p>
       <div id="setupMsg" class="msg"></div>
@@ -220,6 +220,17 @@
       </div>
     </section>
 
+    <section id="printbind" class="screen">
+      <div class="hero compact"><div class="eyebrow">MOBILE PRINT STATION</div><h1>Привязка принтера</h1>
+        <p>Отсканируйте QR на мобильном принтере / тележке. Печать с этого ТСД пойдёт на выбранную станцию Print Agent.</p>
+      </div>
+      <div id="printBindStatus" class="availability-card">Проверяем привязку…</div>
+      <label>QR принтера<input id="printBindQr" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" placeholder="ZIPLINE-PRINT:… или PRINT-…"></label>
+      <button id="printBindGo" class="primary big" type="button">Привязать на 2 часа</button>
+      <button id="printBindHome" class="ghost big" type="button">← На главную</button>
+      <div id="printBindMsg" class="msg" role="status"></div>
+    </section>
+
   </main>
 
   <div id="scanFeedback" class="scan-feedback hidden"></div>
@@ -239,5 +250,6 @@
   <script src="/static/tsd-r145f20-receive.js?v=r145f35"></script>
   <script src="/static/tsd-transit.js?v=r145f18"></script>
   <script src="/static/tsd-boxes.js?v=r145f9"></script>
-<script src="/static/zipline-shell.js?v=zip5"></script></body>
+<script src="/static/tsd-print-bind.js?v=pgw1"></script>
+<script src="/static/zipline-shell.js?v=zip7"></script></body>
 </html>

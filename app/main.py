@@ -448,6 +448,10 @@ app.include_router(r145f51_receiving_router)
 app.include_router(r145f52_receiving_router)
 from app.routers.server_state import router as server_state_router
 app.include_router(server_state_router)
+from app.routers.zipline_tz import router as zipline_tz_router
+app.include_router(zipline_tz_router)
+from app.routers.print_gateway import router as print_gateway_router
+app.include_router(print_gateway_router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -880,6 +884,55 @@ def fulfillment_platform_startup():
         except Exception:
             pass
         print(f"FulfillCore fulfillment platform schema warning: {exc}")
+    finally:
+        try:
+            generator.close()
+        except Exception:
+            pass
+
+
+@app.on_event("startup")
+def zipline_tz_startup():
+    """TZ v1.3 completion layer: permissions, Z-Event, inbound, packing HU, etc."""
+    from app.services.z_event import install_z_event_schema
+    from app.services.zipline_tz_core import ensure_user_permissions_defaults, install_zipline_tz_schema
+
+    generator = get_db()
+    db = next(generator)
+    try:
+        install_z_event_schema(db)
+        result = install_zipline_tz_schema(db)
+        backfilled = ensure_user_permissions_defaults(db)
+        print(f"ZIPLINE TZ schema: ready ({result}, permissions_backfilled={backfilled})")
+    except Exception as exc:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        print(f"ZIPLINE TZ schema warning: {exc}")
+    finally:
+        try:
+            generator.close()
+        except Exception:
+            pass
+
+
+@app.on_event("startup")
+def print_gateway_startup():
+    """TZ §7.3 Print Gateway: printers/templates/routes/edge + mobile stations."""
+    from app.services.print_gateway import install_print_gateway_schema
+
+    generator = get_db()
+    db = next(generator)
+    try:
+        result = install_print_gateway_schema(db)
+        print(f"Print Gateway schema: ready ({result})")
+    except Exception as exc:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        print(f"Print Gateway schema warning: {exc}")
     finally:
         try:
             generator.close()
